@@ -25,10 +25,10 @@ custom workbench with toolbar/menu commands.
 - `freecad/fcspreadsheetplus/resources/` — icons + translations + `Resources` manager
 
 ## Install / dev loop
-- Dev (no install): `~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/fcspreadsheetplus`
-- Or symlink: `ln -s ~/projects/fcspreadsheetplus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus`
+- Dev (no install): `~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/FCSpreadSheetPlus`
+- Or symlink: `ln -s ~/projects/FCSpreadSheetPlus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus`
 - Headless tests: extract AppImage once, then
-  `./squashfs-root/AppRun freecadcmd -M ~/projects/fcspreadsheetplus tests/test_sheet.py`
+  `./squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_sheet.py`
 
 ## Notes / decisions
 - License: LGPL-2.1-or-later (same as FreeCAD)

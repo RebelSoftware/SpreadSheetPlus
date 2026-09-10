@@ -13,7 +13,7 @@ objects through a thin wrapper and adds its own toolbar/menu commands.
 Copy (or symlink) this directory into your user `Mod` folder:
 
 ```bash
-ln -s ~/projects/fcspreadsheetplus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus
+ln -s ~/projects/FCSpreadSheetPlus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus
 ```
 
 Then restart FreeCAD and select **FC SpreadSheet 2** from the workbench selector.
@@ -21,7 +21,7 @@ Then restart FreeCAD and select **FC SpreadSheet 2** from the workbench selector
 To try it without installing, launch FreeCAD with an extra module path:
 
 ```bash
-~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/fcspreadsheetplus
+~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/FCSpreadSheetPlus
 ```
 
 ## Development
@@ -53,8 +53,8 @@ Extract the AppImage once, then:
 ```bash
 cd ~/Applications
 ./FreeCAD_1.1.3-Linux-x86_64-py311.AppImage --appimage-extract
-cd ~/projects/fcspreadsheetplus
-~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/fcspreadsheetplus tests/test_sheet.py
+cd ~/projects/FCSpreadSheetPlus
+~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_sheet.py
 ```
 
 Note: use `freecadcmd` (not the bare `python` from the AppImage) so that the
