@@ -2,12 +2,15 @@
 """ConfigRef: a per-part link to a MasterSheet with a selected configuration.
 
 A ConfigRef is an `App::FeaturePython` that links to a `Spreadsheet::Sheet`
-(the master) and selects one configuration row by name. It exposes that row's
-parameters as read-only dynamic properties, refreshed from the master whenever
-the configuration changes or the document recomputes.
+(the master, possibly in another document) and selects one configuration row by
+name. It exposes that row's parameters as read-only dynamic properties,
+refreshed from the master whenever the configuration changes or the document
+recomputes.
 """
 
 from __future__ import annotations
+
+import os
 
 import FreeCAD as App
 
@@ -72,7 +75,7 @@ class ConfigRef:
     def __init__(self, obj) -> None:
         if not hasattr(obj, "Master"):
             obj.addProperty(
-                "App::PropertyLink",
+                "App::PropertyXLink",
                 "Master",
                 GROUP,
                 "Linked master spreadsheet",
@@ -102,8 +105,12 @@ class ConfigRef:
         return Table(master)
 
     def onChanged(self, obj, prop: str) -> None:
-        if prop in ("Master", "Configuration"):
-            self._sync(obj)
+        # No work here. Changing a property marks the object for recompute, and
+        # the actual sync runs in execute() (only on recompute, after the
+        # document is fully restored). This avoids mutating properties while a
+        # document is being restored, which would corrupt the exposed
+        # parameter properties.
+        pass
 
     def execute(self, obj) -> None:
         self._sync(obj)
@@ -125,29 +132,34 @@ class ConfigRef:
     def _sync_properties(self, obj, table, params) -> None:
         managed = list(obj.ManagedParameters)
 
-        # remove properties for parameters that no longer exist
-        for name in managed:
-            if name not in params and hasattr(obj, name):
-                obj.removeProperty(name)
-        managed = [n for n in managed if n in params]
+        # Remove managed properties whose parameter no longer exists. Only done
+        # when we have a known non-empty parameter list (execute runs after the
+        # document is fully restored, so params is reliable here).
+        if params:
+            for name in managed:
+                if name not in params and hasattr(obj, name):
+                    obj.removeProperty(name)
+            managed = [n for n in managed if n in params]
 
-        # add properties for new parameters
+        new_managed = []
         for name in params:
-            if name not in managed:
-                if hasattr(obj, name):
-                    # name collides with an existing property; skip exposure
-                    continue
-                values = [table.get_value(c, name) for c in table.configurations()]
-                obj.addProperty(
-                    infer_type(values),
-                    name,
-                    GROUP,
-                    f"Parameter '{name}' from the master configuration",
-                )
-                managed.append(name)
+            if hasattr(obj, name):
+                if name in managed:
+                    new_managed.append(name)
+                # else: name collides with a built-in property; leave unmanaged
+                continue
+            # add a missing property (new parameter, or one lost during restore)
+            values = [table.get_value(c, name) for c in table.configurations()]
+            obj.addProperty(
+                infer_type(values),
+                name,
+                GROUP,
+                f"Parameter '{name}' from the master configuration",
+            )
+            new_managed.append(name)
 
-        if list(obj.ManagedParameters) != managed:
-            obj.ManagedParameters = managed
+        if list(obj.ManagedParameters) != new_managed:
+            obj.ManagedParameters = new_managed
 
     def _sync_values(self, obj, table, params) -> None:
         config = obj.Configuration
@@ -181,3 +193,27 @@ def create(doc, master, configuration: str, name: str = "ConfigRef"):
     obj.Configuration = configuration
     obj.recompute()
     return obj
+
+
+def link_master_by_path(config_ref, file_path: str, object_name: str = "MasterSheet"):
+    """Point a ConfigRef's Master at a MasterSheet in an external document.
+
+    Opens *file_path* if it is not already open, then sets the `Master` link to
+    the object named *object_name* in that document.
+    """
+    target = os.path.abspath(file_path)
+    doc = None
+    for candidate in App.listDocuments().values():
+        try:
+            if os.path.abspath(candidate.FileName) == target:
+                doc = candidate
+                break
+        except OSError:
+            continue
+    if doc is None:
+        doc = App.openDocument(file_path)
+    master = doc.getObject(object_name)
+    if master is None:
+        raise ValueError(f"object {object_name!r} not found in {file_path!r}")
+    config_ref.Master = master
+    return config_ref

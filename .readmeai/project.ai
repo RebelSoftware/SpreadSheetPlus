@@ -49,9 +49,10 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - Phase 0: table model (`table.py`) + tests, passing 3/3
 - Phase 1: same-document MasterSheet + ConfigRef (read-through, typed params),
   passing 3/3
+- Phase 2: cross-file sharing via `App::PropertyXLink` + `link_master_by_path`,
+  passing 1/1 (save → close → reopen resolves the external link)
 
 ### Pending (roadmap)
-- Phase 2: cross-file sharing via PropertyXLink / App::Link
 - Phase 3: UX (commands, table editor, config switcher, ViewProviders)
 - Phase 4: robustness (caching, hidden-ref two-way binding, undo, i18n)
 - Publish via the Addon Manager
@@ -69,3 +70,10 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   numbers, anything else becomes a string.
 - `Sheet.removeRows("3", 1)` / `removeColumns("B", 1)` take a 1-based row string
   and a column letter respectively.
+- `App::PropertyXLink` links to objects in other documents. Setting it to an
+  external object requires the **owner document to be saved first**, otherwise
+  it throws "Owner document not saved" (FreeCAD needs the path to compute the
+  relative link).
+- Do NOT add/remove dynamic properties in a FeaturePython `onChanged` — it fires
+  during document restore when external link targets aren't loaded yet, which
+  corrupts the exposed properties. Do it in `execute()` (runs on recompute).
