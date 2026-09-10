@@ -191,3 +191,14 @@ Example:
 
 ### Remaining open (can decide later)
 - Whether `MasterSheet` wraps an existing `Spreadsheet::Sheet` or owns its own.
+
+## 8. Documentation (written as we go)
+
+Docs ship with each phase (same commit). Current files:
+
+- `docs/usage.md` — how to use the workbench: table layout, scripting quick
+  start, sharing across parts, cross-file, value types.
+- `docs/api.md` — reference for `Table`, `MasterSheet`, `ConfigRef`, `Sheet`.
+- `README.md` — landing page linking into `docs/`.
+
+Add the GUI workflow (toolbar/dialog steps) to `usage.md` once Phase 3 lands.

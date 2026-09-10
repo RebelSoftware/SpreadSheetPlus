@@ -19,6 +19,9 @@ custom workbench with toolbar/menu commands.
 - `freecad/fcspreadsheet2/workbench.py` — `FCSpreadSheet2Workbench` (Gui.Workbench)
 - `freecad/fcspreadsheet2/commands/` — command classes (toolbar/menu actions)
 - `freecad/fcspreadsheet2/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
+- `freecad/fcspreadsheet2/table.py` — configuration table model (rows = configs, cols = params)
+- `freecad/fcspreadsheet2/master_sheet.py` — `MasterSheet` wrapper + `create()`
+- `freecad/fcspreadsheet2/config_ref.py` — `ConfigRef` FeaturePython (row selection, cross-file link)
 - `freecad/fcspreadsheet2/resources/` — icons + translations + `Resources` manager
 
 ## Install / dev loop
@@ -39,6 +42,11 @@ The detailed technical plan lives in `PLAN.md`. Core idea: a single **MasterShee
 per project (reusable across files), and a per-part **ConfigRef** that links to it
 and selects a named row, so many parts share one spreadsheet without copying it.
 
+## Docs (written as we go)
+- `docs/usage.md` — how-to: table layout, scripting quick start, cross-file, value types.
+- `docs/api.md` — reference for `Table`, `MasterSheet`, `ConfigRef`, `Sheet`.
+- Convention: each phase ships its docs in the same commit.
+
 ## Tasks
 ### Completed
 - Scaffolded the namespace workbench addon (`freecad/fcspreadsheet2/`)
@@ -51,6 +59,7 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   passing 3/3
 - Phase 2: cross-file sharing via `App::PropertyXLink` + `link_master_by_path`,
   passing 1/1 (save → close → reopen resolves the external link)
+- Documented usage + API (`docs/usage.md`, `docs/api.md`)
 
 ### Pending (roadmap)
 - Phase 3: UX (commands, table editor, config switcher, ViewProviders)

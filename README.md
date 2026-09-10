@@ -35,7 +35,15 @@ The importable package is `freecad.fcspreadsheet2` (module `fcspreadsheet2`).
 | `freecad/fcspreadsheet2/workbench.py` | `FCSpreadSheet2Workbench` |
 | `freecad/fcspreadsheet2/commands/` | toolbar/menu command classes |
 | `freecad/fcspreadsheet2/sheet.py` | `Sheet` wrapper around `Spreadsheet::Sheet` |
+| `freecad/fcspreadsheet2/table.py` | configuration table model |
+| `freecad/fcspreadsheet2/master_sheet.py` | `MasterSheet` wrapper |
+| `freecad/fcspreadsheet2/config_ref.py` | `ConfigRef` row-selection link |
 | `freecad/fcspreadsheet2/resources/` | icons and translations |
+
+## Documentation
+
+- [Usage guide](docs/usage.md) — how to use the workbench (scripting workflow)
+- [API reference](docs/api.md) — `Table`, `MasterSheet`, `ConfigRef`, `Sheet`
 
 ### Running tests
 
