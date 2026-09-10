@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "FreeCAD: Run all tests",
+      "type": "shell",
+      "command": "for t in test_sheet test_table test_config_ref; do echo \"=== $t ===\"; /home/chris/Applications/squashfs-root/AppRun freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
+      "problemMatcher": [],
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "echo": true, "reveal": "always", "clear": true, "panel": "dedicated" }
+    },
+    {
+      "label": "FreeCAD: Test sheet",
+      "type": "shell",
+      "command": "/home/chris/Applications/squashfs-root/AppRun",
+      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_sheet.py"],
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": { "clear": true }
+    },
+    {
+      "label": "FreeCAD: Test table",
+      "type": "shell",
+      "command": "/home/chris/Applications/squashfs-root/AppRun",
+      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_table.py"],
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "FreeCAD: Test ConfigRef",
+      "type": "shell",
+      "command": "/home/chris/Applications/squashfs-root/AppRun",
+      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_config_ref.py"],
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Syntax check",
+      "type": "shell",
+      "command": "python3 -m py_compile ${workspaceFolder}/freecad/fcspreadsheet2/*.py ${workspaceFolder}/freecad/fcspreadsheet2/commands/*.py ${workspaceFolder}/freecad/fcspreadsheet2/resources/*.py ${workspaceFolder}/tests/*.py",
+      "problemMatcher": []
+    }
+  ]
+}
