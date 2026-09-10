@@ -1,0 +1,116 @@
+"""Tests for MasterSheet + ConfigRef (Phase 1).
+
+Run inside FreeCAD's interpreter:
+
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheet2 tests/test_config_ref.py
+"""
+
+import sys
+import traceback
+
+import FreeCAD
+
+from freecad.fcspreadsheet2.master_sheet import MasterSheet
+from freecad.fcspreadsheet2.config_ref import create as create_config_ref
+
+
+def _build_master(doc):
+    master = MasterSheet.create(doc, name="MasterSheet")
+    for param in ("Length", "Width", "Depth", "Enabled"):
+        master.add_parameter(param)
+    for config in ("TypeA", "TypeB", "TypeC"):
+        master.add_configuration(config)
+    data = {
+        "TypeA": {"Length": 80, "Width": 40, "Depth": 10, "Enabled": True},
+        "TypeB": {"Length": 85, "Width": 42, "Depth": 100, "Enabled": False},
+        "TypeC": {"Length": 90, "Width": 55, "Depth": 90, "Enabled": True},
+    }
+    for config, row in data.items():
+        for param, value in row.items():
+            master.set_value(config, param, value)
+    return master
+
+
+def test_config_ref_properties():
+    doc = FreeCAD.newDocument("ConfigRefTest")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+
+        assert ref.Length == 80
+        assert ref.Width == 40
+        assert ref.Depth == 10
+        assert ref.Enabled is True
+
+        ref.Configuration = "TypeB"
+        doc.recompute()
+        assert ref.Length == 85
+        assert ref.Width == 42
+        assert ref.Enabled is False
+    finally:
+        FreeCAD.closeDocument("ConfigRefTest")
+
+
+def test_expression_read_through():
+    doc = FreeCAD.newDocument("ConfigRefTest2")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+
+        box = doc.addObject("Part::Box", "Box")
+        box.setExpression("Length", "ConfigRefA.Length * 1mm")
+        box.setExpression("Width", "ConfigRefA.Width * 1mm")
+        doc.recompute()
+
+        assert abs(box.Length.Value - 80) < 1e-9
+        assert abs(box.Width.Value - 40) < 1e-9
+
+        ref.Configuration = "TypeB"
+        doc.recompute()
+        assert abs(box.Length.Value - 85) < 1e-9
+        assert abs(box.Width.Value - 42) < 1e-9
+    finally:
+        FreeCAD.closeDocument("ConfigRefTest2")
+
+
+def test_master_edit_propagates():
+    doc = FreeCAD.newDocument("ConfigRefTest3")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+        assert ref.Length == 80
+
+        # edit at the master, then recompute
+        master.set_value("TypeA", "Length", 123)
+        doc.recompute()
+        assert ref.Length == 123
+    finally:
+        FreeCAD.closeDocument("ConfigRefTest3")
+
+
+def main():
+    tests = [
+        value
+        for key, value in sorted(globals().items())
+        if key.startswith("test_") and callable(value)
+    ]
+    failures = 0
+    for test in tests:
+        try:
+            test()
+            print(f"PASS {test.__name__}", flush=True)
+        except Exception:  # noqa: BLE001 - report and continue
+            failures += 1
+            print(f"FAIL {test.__name__}", flush=True)
+            traceback.print_exc()
+
+    print(f"{len(tests) - failures}/{len(tests)} tests passed", flush=True)
+    sys.stdout.flush()
+    sys.exit(1 if failures else 0)
+
+
+# NOTE: FreeCADCmd executes scripts with __name__ set to the script's basename
+# (not "__main__"), so main() is called unconditionally.
+main()

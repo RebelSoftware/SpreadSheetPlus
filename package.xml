@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+  <name>FCSpreadSheet2</name>
+  <description>A spreadsheet workbench similar to FreeCAD's built-in Spreadsheet workbench.</description>
+  <version>0.1.0</version>
+  <date>2026-09-10</date>
+  <maintainer email="you@example.com">Chris</maintainer>
+  <license file="LICENSE">LGPL-2.1-or-later</license>
+  <url type="repository" branch="main">https://github.com/chris/FCSpreadSheet2</url>
+  <content>
+    <workbench>
+      <classname>FCSpreadSheet2Workbench</classname>
+      <subdirectory>freecad/fcspreadsheet2</subdirectory>
+      <freecadmin>1.0.0</freecadmin>
+      <pythonmin>3.8</pythonmin>
+    </workbench>
+  </content>
+</package>

@@ -47,11 +47,12 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - Added dependency-free test runner (`tests/test_sheet.py`), passing 2/2
 - Wrote project plan (`PLAN.md`)
 - Phase 0: table model (`table.py`) + tests, passing 3/3
+- Phase 1: same-document MasterSheet + ConfigRef (read-through, typed params),
+  passing 3/3
 
 ### Pending (roadmap)
-- Phase 1: same-document MasterSheet + ConfigRef (single instance, row select)
 - Phase 2: cross-file sharing via PropertyXLink / App::Link
-- Phase 3: UX (commands, table editor, config switcher)
+- Phase 3: UX (commands, table editor, config switcher, ViewProviders)
 - Phase 4: robustness (caching, hidden-ref two-way binding, undo, i18n)
 - Publish via the Addon Manager
 
