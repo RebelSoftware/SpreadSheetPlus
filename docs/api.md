@@ -1,6 +1,6 @@
 # API reference
 
-## `freecad.fcspreadsheet2.table`
+## `freecad.fcspreadsheetplus.table`
 
 One spreadsheet = one configuration table. All cell access uses the fixed layout
 described in [usage.md](usage.md).
@@ -33,7 +33,7 @@ Wraps a `Spreadsheet::Sheet` with named-table access.
 | `remove_parameter(name)` | delete a parameter column (shifts left) |
 | `validate()` → `list[str]` | human-readable problems (empty = OK) |
 
-## `freecad.fcspreadsheet2.master_sheet`
+## `freecad.fcspreadsheetplus.master_sheet`
 
 ### `class MasterSheet(sheet)`
 
@@ -48,7 +48,7 @@ Delegates to `table`: `title`, `set_title`, `parameters`, `configurations`,
 `get_value`, `set_value`, `get_row`, `add_configuration`, `remove_configuration`,
 `add_parameter`, `remove_parameter`, `validate`.
 
-## `freecad.fcspreadsheet2.config_ref`
+## `freecad.fcspreadsheetplus.config_ref`
 
 ### `create(doc, master, configuration, name="ConfigRef")` → object
 
@@ -71,7 +71,7 @@ Object properties:
 - One dynamic **read-only** property per parameter (e.g. `Length`), typed by
   inference.
 
-## `freecad.fcspreadsheet2.sheet`
+## `freecad.fcspreadsheetplus.sheet`
 
 ### `class Sheet(obj)`
 

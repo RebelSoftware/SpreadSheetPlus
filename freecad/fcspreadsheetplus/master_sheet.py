@@ -24,7 +24,7 @@ class MasterSheet:
     def create(cls, doc=None, name: str = "MasterSheet", title: str = "") -> "MasterSheet":
         doc = doc or App.ActiveDocument
         if doc is None:
-            raise ValueError("FCSpreadSheet2: no active document")
+            raise ValueError("FCSpreadSheetPlus: no active document")
         sheet = doc.addObject("Spreadsheet::Sheet", name)
         wrapper = cls(sheet)
         if title:

@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheet2 tests/test_table.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/fcspreadsheetplus tests/test_table.py
 """
 
 import sys
@@ -10,7 +10,7 @@ import traceback
 
 import FreeCAD
 
-from freecad.fcspreadsheet2.table import Table
+from freecad.fcspreadsheetplus.table import Table
 
 
 def test_write_and_read():

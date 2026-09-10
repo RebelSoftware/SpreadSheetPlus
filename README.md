@@ -1,4 +1,4 @@
-# FCSpreadSheet2
+# FCSpreadSheetPlus
 
 A FreeCAD spreadsheet workbench (Python addon) similar to FreeCAD's default
 Spreadsheet workbench. It reuses FreeCAD's built-in `Spreadsheet::Sheet`
@@ -13,7 +13,7 @@ objects through a thin wrapper and adds its own toolbar/menu commands.
 Copy (or symlink) this directory into your user `Mod` folder:
 
 ```bash
-ln -s ~/projects/FCSpreadSheet2 ~/.local/share/FreeCAD/Mod/FCSpreadSheet2
+ln -s ~/projects/fcspreadsheetplus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus
 ```
 
 Then restart FreeCAD and select **FC SpreadSheet 2** from the workbench selector.
@@ -21,24 +21,24 @@ Then restart FreeCAD and select **FC SpreadSheet 2** from the workbench selector
 To try it without installing, launch FreeCAD with an extra module path:
 
 ```bash
-~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/FCSpreadSheet2
+~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/fcspreadsheetplus
 ```
 
 ## Development
 
-The importable package is `freecad.fcspreadsheet2` (module `fcspreadsheet2`).
+The importable package is `freecad.fcspreadsheetplus` (module `fcspreadsheetplus`).
 
 | File | Purpose |
 | :--- | :--- |
-| `freecad/fcspreadsheet2/__init__.py` | headless entry (exports `__version__`) |
-| `freecad/fcspreadsheet2/init_gui.py` | GUI entry: registers icons/translations/commands/workbench |
-| `freecad/fcspreadsheet2/workbench.py` | `FCSpreadSheet2Workbench` |
-| `freecad/fcspreadsheet2/commands/` | toolbar/menu command classes |
-| `freecad/fcspreadsheet2/sheet.py` | `Sheet` wrapper around `Spreadsheet::Sheet` |
-| `freecad/fcspreadsheet2/table.py` | configuration table model |
-| `freecad/fcspreadsheet2/master_sheet.py` | `MasterSheet` wrapper |
-| `freecad/fcspreadsheet2/config_ref.py` | `ConfigRef` row-selection link |
-| `freecad/fcspreadsheet2/resources/` | icons and translations |
+| `freecad/fcspreadsheetplus/__init__.py` | headless entry (exports `__version__`) |
+| `freecad/fcspreadsheetplus/init_gui.py` | GUI entry: registers icons/translations/commands/workbench |
+| `freecad/fcspreadsheetplus/workbench.py` | `FCSpreadSheetPlusWorkbench` |
+| `freecad/fcspreadsheetplus/commands/` | toolbar/menu command classes |
+| `freecad/fcspreadsheetplus/sheet.py` | `Sheet` wrapper around `Spreadsheet::Sheet` |
+| `freecad/fcspreadsheetplus/table.py` | configuration table model |
+| `freecad/fcspreadsheetplus/master_sheet.py` | `MasterSheet` wrapper |
+| `freecad/fcspreadsheetplus/config_ref.py` | `ConfigRef` row-selection link |
+| `freecad/fcspreadsheetplus/resources/` | icons and translations |
 
 ## Documentation
 
@@ -53,8 +53,8 @@ Extract the AppImage once, then:
 ```bash
 cd ~/Applications
 ./FreeCAD_1.1.3-Linux-x86_64-py311.AppImage --appimage-extract
-cd ~/projects/FCSpreadSheet2
-~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheet2 tests/test_sheet.py
+cd ~/projects/fcspreadsheetplus
+~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/fcspreadsheetplus tests/test_sheet.py
 ```
 
 Note: use `freecadcmd` (not the bare `python` from the AppImage) so that the
@@ -63,7 +63,7 @@ Note: use `freecadcmd` (not the bare `python` from the AppImage) so that the
 ### Scripting API
 
 ```python
-from freecad.fcspreadsheet2.sheet import Sheet
+from freecad.fcspreadsheetplus.sheet import Sheet
 
 sheet = Sheet.create(name="MySheet")
 sheet.set("A1", 42)          # raw cell content

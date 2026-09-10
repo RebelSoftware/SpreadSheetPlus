@@ -25,7 +25,7 @@ class Sheet:
         """Create a new Spreadsheet::Sheet in *doc* (default: active document)."""
         doc = doc or App.ActiveDocument
         if doc is None:
-            raise ValueError("FCSpreadSheet2: no active document")
+            raise ValueError("FCSpreadSheetPlus: no active document")
         obj = doc.addObject("Spreadsheet::Sheet", name or DEFAULT_NAME)
         return cls(obj)
 

@@ -186,7 +186,7 @@ def create(doc, master, configuration: str, name: str = "ConfigRef"):
     """Create and return a ConfigRef FeaturePython object."""
     doc = doc or App.ActiveDocument
     if doc is None:
-        raise ValueError("FCSpreadSheet2: no active document")
+        raise ValueError("FCSpreadSheetPlus: no active document")
     obj = doc.addObject("App::FeaturePython", name)
     ConfigRef(obj)
     obj.Master = master

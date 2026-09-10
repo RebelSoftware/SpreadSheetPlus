@@ -1,4 +1,4 @@
-# FCSpreadSheet2 — Project Plan
+# FCSpreadSheetPlus — Project Plan
 
 ## Goal
 
@@ -83,7 +83,7 @@ Example:
 ## 4. Component / function inventory
 
 ### A. Table model (headless, pure Python)
-- `freecad/fcspreadsheet2/table.py`
+- `freecad/fcspreadsheetplus/table.py`
   - `Table(sheet)` — wraps a `Spreadsheet::Sheet` as a named table.
   - `read_schema()` → `{param_name: col_index}`, `[config_names]`
   - `write_schema(param_names, config_names)` — lays out the header/name cells.
@@ -93,7 +93,7 @@ Example:
   - `validate()` — check for duplicate names, empty cells, invalid identifiers.
 
 ### B. MasterSheet object
-- `freecad/fcspreadsheet2/master_sheet.py`
+- `freecad/fcspreadsheetplus/master_sheet.py`
   - `MasterSheet.create(doc)` — creates a `Spreadsheet::Sheet` (or a
     `App::FeaturePython` that owns a sheet) at the document root, initializes the
     table.
@@ -101,7 +101,7 @@ Example:
     `add_parameter`, `rename_parameter`, `set_value`, `get_value`.
 
 ### C. ConfigRef object (the decoupling link)
-- `freecad/fcspreadsheet2/config_ref.py`
+- `freecad/fcspreadsheetplus/config_ref.py`
   - `ConfigRef` proxy for an `App::FeaturePython` with:
     - `Master` — `App::PropertyXLink` → MasterSheet.
     - `Configuration` — `App::PropertyEnumeration` (row names) + `App::PropertyString`
@@ -114,7 +114,7 @@ Example:
   - ViewProvider: `ConfigRefViewProvider` (icon, tree display, no shape).
 
 ### D. Expression / binding layer
-- `freecad/fcspreadsheet2/bind.py`
+- `freecad/fcspreadsheetplus/bind.py`
   - `bind_to_config_ref(part, config_ref, param_map)` — set expressions on the
     part's parameters: `part.setExpression("Length", "<<ConfigRef>>.Length")`.
   - `link_parameter(obj, prop, cell)` — set a hidden reference
@@ -123,18 +123,18 @@ Example:
   - `unbind(...)` helpers.
 
 ### E. Cross-file layer
-- `freecad/fcspreadsheet2/external.py`
+- `freecad/fcspreadsheetplus/external.py`
   - `attach_external_master(config_ref, file_path)` — set the `PropertyXLink`
     to an external document's MasterSheet (via `App::Link` / `Document.open`).
   - Path handling (relative vs absolute), placeholder/dependency management.
 
 ### F. UX (GUI)
-- `freecad/fcspreadsheet2/commands/` — commands:
+- `freecad/fcspreadsheetplus/commands/` — commands:
   - `CreateMasterSheet`
   - `AttachConfiguration` (create + link a ConfigRef to the active part)
   - `EditConfigurationTable` (open a table editor dialog)
   - `SwitchConfiguration` (change the selected row from the tree/property editor)
-- `freecad/fcspreadsheet2/dialogs/` — table editor + configuration selector.
+- `freecad/fcspreadsheetplus/dialogs/` — table editor + configuration selector.
 
 ## 5. Phased roadmap
 

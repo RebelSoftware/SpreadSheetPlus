@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""FCSpreadSheet2 workbench definition."""
+"""FCSpreadSheetPlus workbench definition."""
 
 from __future__ import annotations
 
@@ -12,21 +12,21 @@ from .resources import Resources
 from .commands import CreateSheet
 
 
-class FCSpreadSheet2Workbench(Gui.Workbench):
+class FCSpreadSheetPlusWorkbench(Gui.Workbench):
     """A spreadsheet workbench similar to FreeCAD's default Spreadsheet workbench."""
 
-    MenuText: str = translate("FCSpreadSheet2", "FC SpreadSheet 2")
+    MenuText: str = translate("FCSpreadSheetPlus", "FC SpreadSheet Plus")
     ToolTip: str = translate(
-        "FCSpreadSheet2",
+        "FCSpreadSheetPlus",
         "A spreadsheet workbench similar to the default one",
     )
-    Icon: str = Resources.icon("fcspreadsheet2-wb.svg")
+    Icon: str = Resources.icon("fcspreadsheetplus-wb.svg")
 
     def Initialize(self) -> None:
-        App.Console.PrintMessage("FCSpreadSheet2 workbench initialized\n")
+        App.Console.PrintMessage("FCSpreadSheetPlus workbench initialized\n")
         commands = [CreateSheet.Name]
-        self.appendToolbar("FC SpreadSheet 2", commands)
-        self.appendMenu("FC SpreadSheet 2", commands)
+        self.appendToolbar("FC SpreadSheet Plus", commands)
+        self.appendMenu("FC SpreadSheet Plus", commands)
 
     def Activated(self) -> None:
         pass

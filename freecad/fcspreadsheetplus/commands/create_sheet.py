@@ -15,14 +15,14 @@ from ..resources import Resources
 class CreateSheet:
     """Create a new Spreadsheet::Sheet in the active document."""
 
-    Name: ClassVar[str] = "FCSpreadSheet2_CreateSheet"
+    Name: ClassVar[str] = "FCSpreadSheetPlus_CreateSheet"
 
     def GetResources(self) -> dict[str, str]:
         return {
-            "Pixmap": Resources.icon("fcspreadsheet2-create.svg"),
-            "MenuText": translate("FCSpreadSheet2", "Create spreadsheet"),
+            "Pixmap": Resources.icon("fcspreadsheetplus-create.svg"),
+            "MenuText": translate("FCSpreadSheetPlus", "Create spreadsheet"),
             "ToolTip": translate(
-                "FCSpreadSheet2",
+                "FCSpreadSheetPlus",
                 "Create a new spreadsheet sheet",
             ),
         }
@@ -31,7 +31,7 @@ class CreateSheet:
         doc = App.ActiveDocument
         if doc is None:
             App.Console.PrintWarning(
-                "FCSpreadSheet2: no active document, cannot create a spreadsheet\n"
+                "FCSpreadSheetPlus: no active document, cannot create a spreadsheet\n"
             )
             return
         from ..sheet import Sheet

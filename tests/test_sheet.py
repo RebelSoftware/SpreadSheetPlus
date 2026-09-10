@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheet2 tests/test_sheet.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/fcspreadsheetplus tests/test_sheet.py
 """
 
 import sys
@@ -10,11 +10,11 @@ import traceback
 
 import FreeCAD
 
-from freecad.fcspreadsheet2.sheet import Sheet
+from freecad.fcspreadsheetplus.sheet import Sheet
 
 
 def test_create_and_cells():
-    doc = FreeCAD.newDocument("FCSpreadSheet2Test")
+    doc = FreeCAD.newDocument("FCSpreadSheetPlusTest")
     try:
         sheet = Sheet.create(doc=doc, name="S1")
         assert sheet.obj.TypeId == "Spreadsheet::Sheet"
@@ -26,11 +26,11 @@ def test_create_and_cells():
         sheet.clear("A1")
         assert sheet.get_contents() == {}
     finally:
-        FreeCAD.closeDocument("FCSpreadSheet2Test")
+        FreeCAD.closeDocument("FCSpreadSheetPlusTest")
 
 
 def test_aliases():
-    doc = FreeCAD.newDocument("FCSpreadSheet2Test")
+    doc = FreeCAD.newDocument("FCSpreadSheetPlusTest")
     try:
         sheet = Sheet.create(doc=doc, name="S1")
         sheet.set("B2", "7")
@@ -38,7 +38,7 @@ def test_aliases():
         assert sheet.get_alias("B2") == "seven"
         assert sheet.get_cell_from_alias("seven") == "B2"
     finally:
-        FreeCAD.closeDocument("FCSpreadSheet2Test")
+        FreeCAD.closeDocument("FCSpreadSheetPlusTest")
 
 
 def main():

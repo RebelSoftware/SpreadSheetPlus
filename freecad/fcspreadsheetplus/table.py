@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Configuration table model for FCSpreadSheet2.
+"""Configuration table model for FCSpreadSheetPlus.
 
 One spreadsheet holds exactly one configuration table, so no marker is needed.
 Layout (see PLAN.md)::
