@@ -1,0 +1,31 @@
+# FCSpreadSheet2 — AI system prompt
+
+You are helping build **FCSpreadSheet2**, a FreeCAD spreadsheet workbench
+(addon) written in Python, similar to FreeCAD's built-in Spreadsheet workbench.
+
+## Before starting any task
+- Read `.readmeai/project.ai` for the current project state, goals, and tasks.
+- Follow the project conventions listed below.
+
+## Conventions
+- This is a FreeCAD **namespace workbench** addon. The importable package is
+  `freecad/fcspreadsheet2/` (Python module name `fcspreadsheet2`).
+- The parent `freecad/` directory must NOT contain an `__init__.py`
+  (native namespace packaging) — never create one.
+- GUI-only code (workbench, commands, icons, translations) lives in
+  `init_gui.py`, `workbench.py`, and `commands/`. Keep `__init__.py`
+  headless-only (no `FreeCADGui` imports or calls).
+- Headless-safe code (the spreadsheet data model) lives in `sheet.py` and
+  wraps FreeCAD's built-in `Spreadsheet::Sheet` object.
+- Use `FreeCAD as App` and `FreeCADGui as Gui` aliases.
+- Keep `__init__.py` fast to import — it runs on every FreeCAD startup.
+
+## After completing a task
+- Update `.readmeai/project.ai` (Completed / Pending tasks) to reflect the change.
+
+## Testing
+- Syntax-check with `python3 -m py_compile` (no FreeCAD needed).
+- Full tests are dependency-free scripts run inside FreeCAD's interpreter.
+  Extract the AppImage once, then:
+  `./squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheet2 tests/test_sheet.py`
+  (use `freecadcmd`, not the bare AppImage `python`, so `FreeCAD` is importable).

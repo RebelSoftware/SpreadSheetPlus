@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+squashfs-root/
+*.AppImage
+.DS_Store
+.bash_history_local
+.bash_history_local.dedup
+.history
+

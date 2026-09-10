@@ -1,0 +1,70 @@
+# FCSpreadSheet2 — Project file
+
+## Description
+A FreeCAD spreadsheet workbench (Python addon) similar to the default
+FreeCAD Spreadsheet workbench. It reuses FreeCAD's built-in
+`Spreadsheet::Sheet` objects through a thin Python wrapper and exposes a
+custom workbench with toolbar/menu commands.
+
+## Tech stack
+- FreeCAD 1.x / 2.x (AppImages at `~/Applications/`)
+- Python 3.11 (bundled with FreeCAD)
+- Namespace workbench structure: `freecad/fcspreadsheet2/`
+- Addon Manager metadata via `package.xml`
+
+## Architecture
+- `freecad/fcspreadsheet2/__init__.py` — headless entry (exports `__version__`)
+- `freecad/fcspreadsheet2/version.py` — `__version__`
+- `freecad/fcspreadsheet2/init_gui.py` — GUI entry: registers icons, translations, commands, workbench
+- `freecad/fcspreadsheet2/workbench.py` — `FCSpreadSheet2Workbench` (Gui.Workbench)
+- `freecad/fcspreadsheet2/commands/` — command classes (toolbar/menu actions)
+- `freecad/fcspreadsheet2/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
+- `freecad/fcspreadsheet2/resources/` — icons + translations + `Resources` manager
+
+## Install / dev loop
+- Dev (no install): `~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/FCSpreadSheet2`
+- Or symlink: `ln -s ~/projects/FCSpreadSheet2 ~/.local/share/FreeCAD/Mod/FCSpreadSheet2`
+- Headless tests: extract AppImage once, then
+  `./squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheet2 tests/test_sheet.py`
+
+## Notes / decisions
+- License: LGPL-2.1-or-later (same as FreeCAD)
+- Maintainer: Chris (email placeholder)
+- Cell read API: use `Sheet.getContents(address)` for raw cell content;
+  `Sheet.get(address)` only returns cells exposed as properties, so the
+  `Sheet` wrapper routes `get()` through `getContents()`.
+
+## Plan
+The detailed technical plan lives in `PLAN.md`. Core idea: a single **MasterSheet**
+per project (reusable across files), and a per-part **ConfigRef** that links to it
+and selects a named row, so many parts share one spreadsheet without copying it.
+
+## Tasks
+### Completed
+- Scaffolded the namespace workbench addon (`freecad/fcspreadsheet2/`)
+- Verified headless import + `Sheet` wrapper against FreeCAD 1.1.3
+- Verified GUI workbench registration + activation (offscreen Qt)
+- Added dependency-free test runner (`tests/test_sheet.py`), passing 2/2
+- Wrote project plan (`PLAN.md`)
+- Phase 0: table model (`table.py`) + tests, passing 3/3
+
+### Pending (roadmap)
+- Phase 1: same-document MasterSheet + ConfigRef (single instance, row select)
+- Phase 2: cross-file sharing via PropertyXLink / App::Link
+- Phase 3: UX (commands, table editor, config switcher)
+- Phase 4: robustness (caching, hidden-ref two-way binding, undo, i18n)
+- Publish via the Addon Manager
+
+## FreeCAD gotchas (verified)
+- FreeCADCmd executes scripts with `__name__` set to the script basename (NOT
+  `"__main__"`) — test scripts must call `main()` unconditionally.
+- `sys.exit(n)` inside FreeCADCmd propagates the exit code, but Python stdout is
+  not auto-flushed — use `print(..., flush=True)` or prints get lost.
+- Run scripts with `freecadcmd -M <repo> script.py`, not the bare AppImage
+  `python` (which cannot `import FreeCAD`).
+- `Sheet.getContents(addr)` returns **string cells with a leading `'` marker**
+  (numbers are returned bare). Strip it when reading text.
+- `Sheet.set(addr, value)` requires a str; numeric-looking strings become
+  numbers, anything else becomes a string.
+- `Sheet.removeRows("3", 1)` / `removeColumns("B", 1)` take a 1-based row string
+  and a column letter respectively.
