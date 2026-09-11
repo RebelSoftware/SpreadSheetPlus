@@ -94,6 +94,22 @@ class ConfigRef:
                 GROUP,
                 "Parameters exposed by this ConfigRef",
             )
+        if not hasattr(obj, "ConfigurationValid"):
+            obj.addProperty(
+                "App::PropertyBool",
+                "ConfigurationValid",
+                GROUP,
+                "Whether the selected configuration resolves",
+                hidden=True,
+            )
+        if not hasattr(obj, "ConfigurationError"):
+            obj.addProperty(
+                "App::PropertyString",
+                "ConfigurationError",
+                GROUP,
+                "Error message when the configuration cannot be resolved",
+                hidden=True,
+            )
         obj.Proxy = self
         self._syncing = False
 
@@ -120,16 +136,18 @@ class ConfigRef:
             return
         table = self._table(obj)
         if table is None:
+            self._set_status(obj, "No master spreadsheet linked", False)
             return
         self._syncing = True
         try:
             params = table.parameters()
-            self._sync_properties(obj, table, params)
-            self._sync_values(obj, table, params)
+            managed = self._sync_properties(obj, table, params)
+            self._sync_values(obj, table, managed)
         finally:
             self._syncing = False
+        self._update_status(obj, table)
 
-    def _sync_properties(self, obj, table, params) -> None:
+    def _sync_properties(self, obj, table, params) -> list[str]:
         managed = list(obj.ManagedParameters)
 
         # Remove managed properties whose parameter no longer exists. Only done
@@ -146,7 +164,9 @@ class ConfigRef:
             if hasattr(obj, name):
                 if name in managed:
                     new_managed.append(name)
-                # else: name collides with a built-in property; leave unmanaged
+                # else: name collides with a built-in property or a Python
+                # attribute (e.g. a parameter named "recompute"); leave it
+                # unmanaged rather than clobbering the object.
                 continue
             # add a missing property (new parameter, or one lost during restore)
             values = [table.get_value(c, name) for c in table.configurations()]
@@ -160,8 +180,9 @@ class ConfigRef:
 
         if list(obj.ManagedParameters) != new_managed:
             obj.ManagedParameters = new_managed
+        return new_managed
 
-    def _sync_values(self, obj, table, params) -> None:
+    def _sync_values(self, obj, table, managed) -> None:
         config = obj.Configuration
         if not config:
             return
@@ -169,9 +190,11 @@ class ConfigRef:
             row = table.get_row(config)
         except KeyError:
             return
-        for name in params:
-            if not hasattr(obj, name):
-                continue
+        # Only touch properties we own (ManagedParameters). Iterating over the
+        # full parameter list would also hit names that collide with built-in
+        # properties or Python attributes (e.g. a parameter named "recompute"),
+        # which must not be read or written here.
+        for name in managed:
             prop_type = obj.getTypeIdOfProperty(name)
             value = coerce(row[name], prop_type)
             try:
@@ -180,6 +203,23 @@ class ConfigRef:
             except Exception:
                 # value cannot be coerced to the property type; leave as-is
                 continue
+
+    def _update_status(self, obj, table) -> None:
+        config = obj.Configuration
+        error = ""
+        valid = True
+        if config:
+            configs = table.configurations()
+            if configs and config not in configs:
+                error = f"Unknown configuration: {config!r}"
+                valid = False
+        self._set_status(obj, error, valid)
+
+    def _set_status(self, obj, error: str, valid: bool) -> None:
+        if obj.ConfigurationValid != valid:
+            obj.ConfigurationValid = valid
+        if obj.ConfigurationError != error:
+            obj.ConfigurationError = error
 
 
 def create(doc, master, configuration: str, name: str = "ConfigRef"):

@@ -68,7 +68,10 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - Documented usage + API (`docs/usage.md`, `docs/api.md`)
 
 ### Pending (roadmap)
-- Phase 4: robustness (caching, hidden-ref two-way binding, undo, i18n)
+- Phase 4: robustness — in progress
+  - [x] Step 1: fix parameter-name collision crash; add `ConfigurationValid` /
+    `ConfigurationError` status on ConfigRef (+ `tests/test_robustness.py`, 3 tests)
+  - [ ] caching, two-way binding (hiddenref), units, validation UI, i18n
 - Publish via the Addon Manager
 
 ## FreeCAD gotchas (verified)
@@ -91,3 +94,8 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - Do NOT add/remove dynamic properties in a FeaturePython `onChanged` — it fires
   during document restore when external link targets aren't loaded yet, which
   corrupts the exposed properties. Do it in `execute()` (runs on recompute).
+- A dynamic property name must not collide with a document object's Python
+  attributes (methods like `recompute`) or the FeaturePython `Proxy` property.
+  Guard with `hasattr(obj, name)` before `addProperty`, and only sync the
+  `ManagedParameters` list in `_sync_values` — never the full parameter list —
+  so colliding names are skipped instead of crashing on `getTypeIdOfProperty`.
