@@ -15,6 +15,8 @@ or column, so the "read until empty" scan stays correct.
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 from FreeCAD import Units
 
 CONFIG_COLUMN = 0        # column A
@@ -84,6 +86,42 @@ def _parse_quantity(text: str, fallback_kind: str):
         value = quantity.Value
         return (NUMBER, int(value) if float(value).is_integer() else value)
     return (QUANTITY, quantity)
+
+
+class TableSnapshot:
+    """Immutable parsed view of a configuration table.
+
+    Produced and cached by ``Table.snapshot()``. The result is shared between
+    callers, so it must not be mutated.
+    """
+
+    __slots__ = ("params", "configs", "_cells")
+
+    def __init__(self, params, configs, cells) -> None:
+        self.params = tuple(params)
+        self.configs = tuple(configs)
+        self._cells = cells  # {(config, param): (kind, value)}
+
+    def cell(self, config: str, param: str):
+        """Parsed ``(kind, value)`` for one data cell."""
+        return self._cells[(config, param)]
+
+    def column(self, param: str) -> list:
+        """Parsed ``(kind, value)`` cells for every configuration of a parameter."""
+        return [self._cells[(config, param)] for config in self.configs]
+
+
+@lru_cache(maxsize=64)
+def _parse_snapshot(key):
+    """Parse raw cell contents into a TableSnapshot (memoized by content)."""
+    param_names, config_names, raw = key
+    cells = {}
+    idx = 0
+    for config in config_names:
+        for param in param_names:
+            cells[(config, param)] = parse_value(raw[idx])
+            idx += 1
+    return TableSnapshot(param_names, config_names, cells)
 
 
 class Table:
@@ -156,6 +194,38 @@ class Table:
             if name == param:
                 return col
             col += 1
+
+    # -- snapshot --------------------------------------------------------
+    def _schema_maps(self):
+        """``(name, column)`` pairs for parameters and ``(name, row)`` for configs."""
+        params = []
+        col = FIRST_PARAM_COLUMN
+        while self._cell(col, HEADER_ROW):
+            params.append((self._cell(col, HEADER_ROW), col))
+            col += 1
+        configs = []
+        row = DATA_START_ROW
+        while self._cell(CONFIG_COLUMN, row):
+            configs.append((self._cell(CONFIG_COLUMN, row), row))
+            row += 1
+        return params, configs
+
+    def snapshot(self) -> TableSnapshot:
+        """Parse the whole table once, memoized by raw cell content.
+
+        The parsed result depends only on the raw cell contents, so equal
+        content — e.g. the same master read by several ConfigRefs, or a
+        recompute where nothing changed — is parsed once and reused.
+        """
+        params, configs = self._schema_maps()
+        param_names = tuple(name for name, _ in params)
+        config_names = tuple(name for name, _ in configs)
+        raw = tuple(
+            self._raw(col, row)
+            for _, row in configs
+            for _, col in params
+        )
+        return _parse_snapshot((param_names, config_names, raw))
 
     def get_data(self, config: str, param: str):
         """Parsed ``(kind, value)`` for one data cell (see parse_value)."""

@@ -32,6 +32,7 @@ Wraps a `Spreadsheet::Sheet` with named-table access.
 | `get_value(config, param)` → `str` | display string of a cell (numbers/quantities as text) |
 | `get_data(config, param)` → `(kind, value)` | parsed typed value of a cell |
 | `get_column(param)` → `list[(kind, value)]` | parsed values for every configuration |
+| `snapshot()` → `TableSnapshot` | parsed whole table, memoized by cell content |
 | `set_value(config, param, value)` | write a cell (`str(value)`) |
 | `get_row(config)` → `dict[str, str]` | all parameters for one configuration |
 | `get_all()` → `dict[str, dict[str, str]]` | the whole table |
@@ -40,6 +41,17 @@ Wraps a `Spreadsheet::Sheet` with named-table access.
 | `add_parameter(name)` | append a parameter column |
 | `remove_parameter(name)` | delete a parameter column (shifts left) |
 | `validate()` → `list[str]` | human-readable problems (empty = OK) |
+
+### `class TableSnapshot`
+
+Immutable parsed view of a table, produced by `Table.snapshot()`. The result is
+memoized by raw cell content, so repeated reads of unchanged content reuse the
+same object (shared across ConfigRefs and recomputes).
+
+- `params` — tuple of parameter names.
+- `configs` — tuple of configuration names.
+- `cell(config, param)` → `(kind, value)` — parsed value of one cell.
+- `column(param)` → `list[(kind, value)]` — parsed values for every configuration.
 
 ## `freecad.fcspreadsheetplus.master_sheet`
 

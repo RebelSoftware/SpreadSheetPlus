@@ -131,6 +131,44 @@ def test_set_value_recomputes():
         FreeCAD.closeDocument("TableTest4")
 
 
+def test_snapshot_is_cached():
+    from freecad.fcspreadsheetplus.table import _parse_snapshot
+
+    doc = FreeCAD.newDocument("TableTest5")
+    try:
+        sheet = doc.addObject("Spreadsheet::Sheet", "MasterSheet")
+        table = Table(sheet)
+        table.add_parameter("Length")
+        table.add_parameter("Width")
+        table.add_configuration("TypeA")
+        table.add_configuration("TypeB")
+        table.set_value("TypeA", "Length", 80)
+        table.set_value("TypeA", "Width", "80 mm")
+        table.set_value("TypeB", "Length", 85)
+        table.set_value("TypeB", "Width", "90 mm")
+
+        snap1 = table.snapshot()
+        assert snap1.params == ("Length", "Width")
+        assert snap1.configs == ("TypeA", "TypeB")
+        assert snap1.cell("TypeA", "Length")[0] == "number"
+        assert snap1.cell("TypeA", "Width")[0] == "quantity"
+
+        # Same content -> the identical cached object is returned (no re-parse).
+        hits_before = _parse_snapshot.cache_info().hits
+        snap2 = table.snapshot()
+        assert snap2 is snap1
+        assert _parse_snapshot.cache_info().hits == hits_before + 1
+
+        # Editing a cell changes the content -> a fresh snapshot is parsed.
+        table.set_value("TypeA", "Length", 81)
+        snap3 = table.snapshot()
+        assert snap3 is not snap1
+        assert snap3.cell("TypeA", "Length")[1] == 81
+    finally:
+        save_document(doc, "table_snapshot_cached")
+        FreeCAD.closeDocument("TableTest5")
+
+
 def main():
     tests = [
         value

@@ -163,17 +163,18 @@ class ConfigRef:
         if table is None:
             self._set_status(obj, "No master spreadsheet linked", False)
             return
+        snapshot = table.snapshot()
         self._syncing = True
         try:
-            params = table.parameters()
-            managed = self._sync_properties(obj, table, params)
-            self._sync_values(obj, table, managed)
+            managed = self._sync_properties(obj, snapshot)
+            self._sync_values(obj, snapshot, managed)
         finally:
             self._syncing = False
-        self._update_status(obj, table)
+        self._update_status(obj, snapshot)
 
-    def _sync_properties(self, obj, table, params) -> list[str]:
+    def _sync_properties(self, obj, snapshot) -> list[str]:
         managed = list(obj.ManagedParameters)
+        params = snapshot.params
 
         # Remove managed properties whose parameter no longer exists. Only done
         # when we have a known non-empty parameter list (execute runs after the
@@ -195,7 +196,7 @@ class ConfigRef:
                 continue
             # add a missing property (new parameter, or one lost during restore)
             obj.addProperty(
-                infer_type(table.get_column(name)),
+                infer_type(snapshot.column(name)),
                 name,
                 GROUP,
                 f"Parameter '{name}' from the master configuration",
@@ -217,7 +218,7 @@ class ConfigRef:
 
         return new_managed
 
-    def _sync_values(self, obj, table, managed) -> None:
+    def _sync_values(self, obj, snapshot, managed) -> None:
         config = obj.Configuration
         if not config:
             return
@@ -227,7 +228,7 @@ class ConfigRef:
         # which must not be read or written here.
         for name in managed:
             try:
-                kind, value = table.get_data(config, name)
+                kind, value = snapshot.cell(config, name)
             except KeyError:
                 return
             if kind in (EMPTY, EXPRESSION):
@@ -241,12 +242,12 @@ class ConfigRef:
                 # value cannot be coerced to the property type; leave as-is
                 continue
 
-    def _update_status(self, obj, table) -> None:
+    def _update_status(self, obj, snapshot) -> None:
         config = obj.Configuration
         error = ""
         valid = True
         if config:
-            configs = table.configurations()
+            configs = snapshot.configs
             if configs and config not in configs:
                 error = f"Unknown configuration: {config!r}"
                 valid = False

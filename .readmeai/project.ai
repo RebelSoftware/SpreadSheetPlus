@@ -78,7 +78,10 @@ and selects a named row, so many parts share one spreadsheet without copying it.
     (`App::PropertyLength` / `Angle` / `Mass` / …); `tests/test_units.py`, 4 tests
   - [x] Step 3: expose parameters read-only in the property editor (two-way
     binding rejected — see PLAN.md decision 3)
-  - [ ] caching, validation UI, i18n
+  - [x] Step 4: content-addressed table snapshot cache (`Table.snapshot()`);
+    ConfigRef sync parses the master once per content change, shared across
+    ConfigRefs pointing at the same master
+  - [ ] validation UI, i18n
 - Publish via the Addon Manager
 
 ## FreeCAD gotchas (verified)
