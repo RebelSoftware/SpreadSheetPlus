@@ -199,11 +199,22 @@ class ConfigRef:
                 name,
                 GROUP,
                 f"Parameter '{name}' from the master configuration",
+                read_only=True,
             )
             new_managed.append(name)
 
         if list(obj.ManagedParameters) != new_managed:
             obj.ManagedParameters = new_managed
+
+        # Parameters are read-through: the master is the single source of
+        # truth. Keep the exposed properties read-only in the property editor
+        # so a user cannot edit them there (the edit would be silently
+        # overwritten on the next recompute). Python can still set the value,
+        # which execute() relies on.
+        for name in new_managed:
+            if "ReadOnly" not in obj.getEditorMode(name):
+                obj.setEditorMode(name, 1)
+
         return new_managed
 
     def _sync_values(self, obj, table, managed) -> None:

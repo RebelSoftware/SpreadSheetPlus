@@ -117,9 +117,9 @@ Example:
 - `freecad/fcspreadsheetplus/bind.py`
   - `bind_to_config_ref(part, config_ref, param_map)` — set expressions on the
     part's parameters: `part.setExpression("Length", "<<ConfigRef>>.Length")`.
-  - `link_parameter(obj, prop, cell)` — set a hidden reference
-    `obj.setExpression(prop, "hiddenref(MasterSheet.B2)")` when two-way binding
-    is wanted (Phase 4).
+  - `link_parameter(obj, prop, cell)` — *(planned, then dropped)* set a hidden
+    reference `obj.setExpression(prop, "hiddenref(MasterSheet.B2)")` for
+    two-way binding. Rejected for now — see decision 3.
   - `unbind(...)` helpers.
 
 ### E. Cross-file layer
@@ -169,7 +169,9 @@ Example:
 
 ### Phase 4 — Robustness & advanced
 - Caching of resolved rows; efficient recompute on parameter/row changes.
-- Two-way binding via `hiddenref` (optional edit-in-place).
+- ~~Two-way binding via `hiddenref`~~ — **rejected**: a shared cell would let a
+  naive edit on one part silently change every other part using that cell.
+  ConfigRef parameters are read-only; revisit only if user feedback asks for it.
 - Undo/redo, document save/restore, units, i18n, validation UI.
 - Addon Manager packaging.
 
@@ -178,7 +180,7 @@ Example:
 | Decision | Options | Notes |
 | :--- | :--- | :--- |
 | Language boundary | Python vs C++ patch | Most of this is expressible in Python via `FeaturePython`, `PropertyXLink`, `setExpression`. Hidden-ref *binding* and cross-doc recompute are the riskiest parts to replicate exactly. |
-| Value propagation | (a) expression read-through, (b) copy-on-switch, (c) hidden-ref binding | Start with (a) expressions; revisit (c) only if two-way editing is required. |
+| Value propagation | (a) expression read-through, (b) copy-on-switch, (c) hidden-ref binding | Use (a) expressions; (c) is **rejected** — two-way editing risks surprising cross-part changes on shared cells. |
 | Row selection | `PropertyEnumeration` vs `PropertyString` | Enumeration gives a drop-down and validates names; keep a string fallback for not-yet-created rows. |
 | MasterSheet type | wrap existing `Spreadsheet::Sheet` vs custom `FeaturePython` | Wrapping the existing sheet preserves the full cell/expression engine. |
 | Cross-file | `PropertyXLink` + `App::Link` | Standard FreeCAD mechanism (`doc#obj.prop` ObjectIdentifiers already support this). |
@@ -189,8 +191,10 @@ Example:
 2. **Cross-file** — start same-document (Phase 1 uses `PropertyLink`); add
    cross-file via `PropertyXLink` / `App::Link` in Phase 2.
 3. **Edit model** — read-through only: values are edited at the `MasterSheet`;
-   parts resolve values via expressions (no two-way binding in Phase 1).
-   Hidden-ref binding is deferred to Phase 4 (optional).
+   parts resolve values via expressions. Two-way binding is **rejected** (not
+   just deferred): a ConfigRef parameter is often shared by several parts, so
+   editing it in place would silently update all of them. Exposed parameters
+   are therefore read-only in the property editor.
 4. **Parameter surface** — `ConfigRef` exposes **all** parameters of the table
    as read-only dynamic properties.
 

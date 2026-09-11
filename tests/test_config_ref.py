@@ -94,6 +94,26 @@ def test_master_edit_propagates():
         FreeCAD.closeDocument("ConfigRefTest3")
 
 
+def test_parameters_are_read_only_in_editor():
+    doc = FreeCAD.newDocument("ConfigRefTest4")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+
+        # exposed parameters are read-only in the property editor...
+        assert "ReadOnly" in ref.getEditorMode("Length")
+        assert "ReadOnly" in ref.getEditorMode("Enabled")
+
+        # ...but execute() still keeps them in sync with the master
+        master.set_value("TypeA", "Length", 999)
+        doc.recompute()
+        assert ref.Length == 999
+    finally:
+        save_document(doc, "config_ref_readonly")
+        FreeCAD.closeDocument("ConfigRefTest4")
+
+
 def main():
     tests = [
         value

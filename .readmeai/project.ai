@@ -35,6 +35,9 @@ custom workbench with toolbar/menu commands.
 ## Notes / decisions
 - License: LGPL-2.1-or-later (same as FreeCAD)
 - Maintainer: Chris (email placeholder)
+- ConfigRef parameters are read-only (read-through model): two-way editing is
+  deliberately rejected so a naive edit can't silently change other parts that
+  share the same configuration cell. Revisit only on user feedback.
 - Cell read API: use `Sheet.getContents(address)` for raw cell content;
   `Sheet.get(address)` only returns cells exposed as properties, so the
   `Sheet` wrapper routes `get()` through `getContents()`.
@@ -73,7 +76,9 @@ and selects a named row, so many parts share one spreadsheet without copying it.
     `ConfigurationError` status on ConfigRef (+ `tests/test_robustness.py`, 3 tests)
   - [x] Step 2: unit-aware cells — quantity columns expose typed properties
     (`App::PropertyLength` / `Angle` / `Mass` / …); `tests/test_units.py`, 4 tests
-  - [ ] caching, two-way binding (hiddenref), validation UI, i18n
+  - [x] Step 3: expose parameters read-only in the property editor (two-way
+    binding rejected — see PLAN.md decision 3)
+  - [ ] caching, validation UI, i18n
 - Publish via the Addon Manager
 
 ## FreeCAD gotchas (verified)
