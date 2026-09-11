@@ -95,16 +95,22 @@ class TableSnapshot:
     callers, so it must not be mutated.
     """
 
-    __slots__ = ("params", "configs", "_cells")
+    __slots__ = ("params", "configs", "_cells", "_config_index")
 
     def __init__(self, params, configs, cells) -> None:
         self.params = tuple(params)
         self.configs = tuple(configs)
         self._cells = cells  # {(config, param): (kind, value)}
+        self._config_index = {name.lower(): name for name in self.configs}
+
+    def resolve_config(self, name: str):
+        """Canonical (stored-case) configuration name for *name*, or None."""
+        return self._config_index.get(name.lower())
 
     def cell(self, config: str, param: str):
-        """Parsed ``(kind, value)`` for one data cell."""
-        return self._cells[(config, param)]
+        """Parsed ``(kind, value)`` for one data cell (case-insensitive config)."""
+        canonical = self._config_index.get(config.lower(), config)
+        return self._cells[(canonical, param)]
 
     def column(self, param: str) -> list:
         """Parsed ``(kind, value)`` cells for every configuration of a parameter."""
@@ -181,7 +187,7 @@ class Table:
             name = self._cell(CONFIG_COLUMN, row)
             if not name:
                 raise KeyError(f"unknown configuration: {config!r}")
-            if name == config:
+            if name.lower() == config.lower():
                 return row
             row += 1
 
@@ -271,7 +277,7 @@ class Table:
     def add_configuration(self, name: str) -> None:
         if not name:
             raise ValueError("configuration name must not be empty")
-        if name in self.configurations():
+        if any(existing.lower() == name.lower() for existing in self.configurations()):
             raise ValueError(f"configuration already exists: {name!r}")
         row = DATA_START_ROW
         while self._cell(CONFIG_COLUMN, row):
@@ -306,8 +312,8 @@ class Table:
         configs = self.configurations()
         if len(params) != len(set(params)):
             problems.append("duplicate parameter names")
-        if len(configs) != len(set(configs)):
-            problems.append("duplicate configuration names")
+        if len(configs) != len({c.lower() for c in configs}):
+            problems.append("duplicate configuration names (case-insensitive)")
         for param in params:
             if not param.isidentifier():
                 problems.append(f"parameter name is not a valid identifier: {param!r}")

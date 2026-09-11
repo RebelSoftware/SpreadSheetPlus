@@ -50,8 +50,11 @@ same object (shared across ConfigRefs and recomputes).
 
 - `params` — tuple of parameter names.
 - `configs` — tuple of configuration names.
-- `cell(config, param)` → `(kind, value)` — parsed value of one cell.
+- `cell(config, param)` → `(kind, value)` — parsed value of one cell (config name
+  matched case-insensitively).
 - `column(param)` → `list[(kind, value)]` — parsed values for every configuration.
+- `resolve_config(name)` → `str | None` — canonical stored-case name for `name`
+  (case-insensitive), or `None` if there is no such row.
 
 ## `freecad.fcspreadsheetplus.master_sheet`
 
@@ -119,6 +122,14 @@ by `config_ref.create()` when the GUI is up.
 Qt dialog (a `QTableWidget`) that edits a `MasterSheet`'s configuration table.
 Parameters are columns, configurations are rows. Buttons add/remove rows and
 columns; **OK** writes the grid back to the sheet.
+
+## `freecad.fcspreadsheetplus.dialogs.select_configuration`
+
+### `class SelectConfigurationDialog(configurations, current="", parent=None)`
+
+Qt dialog that picks a configuration row from a **sorted** list with a
+case-insensitive **type-to-search** filter. `selected()` returns the chosen
+name (or `None`). Used by the Switch Configuration command.
 
 ## `freecad.fcspreadsheetplus.commands`
 

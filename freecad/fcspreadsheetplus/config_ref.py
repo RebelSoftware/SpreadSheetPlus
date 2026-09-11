@@ -267,7 +267,7 @@ class ConfigRef:
         valid = True
         if config:
             configs = snapshot.configs
-            if configs and config not in configs:
+            if configs and snapshot.resolve_config(config) is None:
                 error = f"Unknown configuration: {config!r}"
                 valid = False
         self._set_status(obj, error, valid)

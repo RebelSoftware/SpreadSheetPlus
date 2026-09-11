@@ -80,6 +80,25 @@ def test_table_editor_loads_and_writes():
         FreeCAD.closeDocument("GuiTest2")
 
 
+def test_select_configuration_dialog():
+    from freecad.fcspreadsheetplus.dialogs.select_configuration import SelectConfigurationDialog
+
+    dlg = SelectConfigurationDialog(["TypeB", "typeC", "TypeA"], "typeA")
+    names = [dlg.list.item(i).text() for i in range(dlg.list.count())]
+    assert names == ["TypeA", "TypeB", "typeC"]  # sorted by lower-case name
+    assert dlg.list.currentItem().text() == "TypeA"  # current matched case-insensitively
+
+    dlg._filter("typeb")
+    visible = [
+        dlg.list.item(i).text()
+        for i in range(dlg.list.count())
+        if not dlg.list.item(i).isHidden()
+    ]
+    assert visible == ["TypeB"]
+    assert dlg.selected() == "TypeB"
+    dlg.close()
+
+
 def main():
     tests = [
         value

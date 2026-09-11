@@ -25,6 +25,10 @@ The table editor shows parameters as columns and configurations as rows, with
 buttons to add/remove rows and columns. Changes are written back to the sheet
 when you press **OK**.
 
+**Switch Configuration** opens a sorted list of configuration names with a
+search box (type to filter, case-insensitive), so you pick a row instead of
+typing its exact name.
+
 ## The table layout
 
 One spreadsheet = one configuration table. The layout is fixed:
@@ -39,7 +43,8 @@ One spreadsheet = one configuration table. The layout is fixed:
 
 - **Row 1** — free text (title).
 - **Row 2** — parameter names, columns `B`, `C`, … (cell `A2` is a cosmetic label).
-- **Column A, rows 3+** — configuration names.
+- **Column A, rows 3+** — configuration names (matched **case-insensitively**:
+  `TypeA` and `typea` refer to the same row).
 - **`B3…`** — one value per (configuration, parameter).
 
 ## Quick start (scripting)

@@ -136,6 +136,28 @@ def test_new_column_retyped_after_values_arrive():
         FreeCAD.closeDocument("ConfigRefTest5")
 
 
+def test_configuration_names_are_case_insensitive():
+    doc = FreeCAD.newDocument("ConfigRefTest6")
+    try:
+        master = _build_master(doc)  # TypeA, TypeB, TypeC
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+
+        # lower-case lookup resolves to the stored row
+        ref.Configuration = "typeb"
+        doc.recompute()
+        assert ref.ConfigurationValid is True
+        assert ref.ConfigurationError == ""
+        assert ref.Length == 85  # TypeB's Length
+
+        # table lookups are case-insensitive too
+        assert master.get_value("typeA", "Length") == "80"
+        assert master.get_value("TYPEC", "Length") == "90"
+    finally:
+        save_document(doc, "config_ref_case_insensitive")
+        FreeCAD.closeDocument("ConfigRefTest6")
+
+
 def main():
     tests = [
         value

@@ -84,6 +84,8 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   - [x] Step 5 (fix): re-type managed properties when a column's inferred type
     changes — fixes a new column staying `App::PropertyString` and failing in
     quantity contexts (e.g. a sketch constraint)
+  - [x] Step 6: configuration (row) names are case-insensitive; Switch
+    Configuration now shows a sorted, searchable selection dialog
   - [ ] validation UI, i18n
 - Publish via the Addon Manager
 

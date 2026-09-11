@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from PySide6 import QtWidgets
-
 import FreeCAD as App
 import FreeCADGui as Gui
 
@@ -51,20 +49,15 @@ class SwitchConfiguration:
             )
             return
 
+        from ..dialogs.select_configuration import SelectConfigurationDialog
+
         configs = MasterSheet(ref.Master).configurations()
-        current = ref.Configuration
-        index = configs.index(current) if current in configs else 0
-        choice, ok = QtWidgets.QInputDialog.getItem(
-            Gui.getMainWindow(),
-            "Switch configuration",
-            "Configuration:",
-            configs,
-            index,
-            False,
-        )
-        if ok and choice:
-            ref.Configuration = choice
-            doc.recompute()
+        dialog = SelectConfigurationDialog(configs, ref.Configuration, Gui.getMainWindow())
+        if dialog.exec():
+            choice = dialog.selected()
+            if choice:
+                ref.Configuration = choice
+                doc.recompute()
 
     def IsActive(self) -> bool:
         return App.ActiveDocument is not None
