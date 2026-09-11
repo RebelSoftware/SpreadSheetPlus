@@ -4,9 +4,26 @@ FCSpreadSheetPlus stores a single **configuration table** in a spreadsheet and l
 many parts share it. Each part links to the spreadsheet and selects one row (a
 "configuration") by name — so a parameter change is made once, at the master.
 
-> Until the GUI commands land (Phase 3), everything is scripted — the FreeCAD
-> Python console or a macro. The addon must be installed/symlinked into `Mod/`
-> or launched with `-M <repo>` so `freecad.fcspreadsheetplus` is importable.
+> The GUI commands are available once the workbench is loaded (Phase 3). You can
+> also script everything from the FreeCAD Python console or a macro. The addon
+> must be installed/symlinked into `Mod/` or launched with `-M <repo>` so
+> `freecad.fcspreadsheetplus` is importable.
+
+## Using the GUI
+
+After loading the workbench, a **FC SpreadSheet Plus** toolbar and menu appear:
+
+| Command | What it does |
+| :--- | :--- |
+| Create Master Sheet | Create a new `MasterSheet` in the active document. |
+| Create ConfigRef | Turn the selected `Spreadsheet::Sheet` into a `ConfigRef` (selects the first configuration). |
+| Edit Configuration Table | Open the table editor for the selected sheet. |
+| Switch Configuration | Switch the selected `ConfigRef` to another configuration row. |
+| Create Sheet | Create a plain `Spreadsheet::Sheet` (same as the default workbench). |
+
+The table editor shows parameters as columns and configurations as rows, with
+buttons to add/remove rows and columns. Changes are written back to the sheet
+when you press **OK**.
 
 ## The table layout
 

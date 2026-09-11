@@ -191,6 +191,10 @@ def create(doc, master, configuration: str, name: str = "ConfigRef"):
     ConfigRef(obj)
     obj.Master = master
     obj.Configuration = configuration
+    if App.GuiUp and hasattr(obj, "ViewObject") and obj.ViewObject is not None:
+        from .view_providers import ConfigRefViewProvider
+
+        ConfigRefViewProvider(obj.ViewObject)
     obj.recompute()
     return obj
 

@@ -130,11 +130,14 @@ Example:
 
 ### F. UX (GUI)
 - `freecad/fcspreadsheetplus/commands/` — commands:
-  - `CreateMasterSheet`
-  - `AttachConfiguration` (create + link a ConfigRef to the active part)
-  - `EditConfigurationTable` (open a table editor dialog)
-  - `SwitchConfiguration` (change the selected row from the tree/property editor)
-- `freecad/fcspreadsheetplus/dialogs/` — table editor + configuration selector.
+  - `CreateMasterSheet` — create a `MasterSheet` in the active document.
+  - `CreateConfigRef` — turn the selected sheet into a `ConfigRef` (first row).
+  - `EditConfigTable` — open the table editor dialog.
+  - `SwitchConfiguration` — change the selected row from the tree/property editor.
+  - `CreateSheet` — create a plain `Spreadsheet::Sheet` (parity with default workbench).
+- `freecad/fcspreadsheetplus/dialogs/table_editor.py` — `TableEditorDialog`
+  (params = columns, configs = rows, add/remove buttons, write-back on OK).
+- `freecad/fcspreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon).
 
 ## 5. Phased roadmap
 
@@ -161,6 +164,8 @@ Example:
 ### Phase 3 — UX polish
 - Toolbar/menu commands, tree context menus, table editor dialog, configuration
   switcher, error indicators (missing row/param, broken link).
+- **Status: done** — 5 commands, `TableEditorDialog`, `ConfigRefViewProvider`,
+  `tests/test_gui.py` (4/4 offscreen).
 
 ### Phase 4 — Robustness & advanced
 - Caching of resolved rows; efficient recompute on parameter/row changes.

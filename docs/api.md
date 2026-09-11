@@ -80,3 +80,31 @@ Low-level wrapper around a `Spreadsheet::Sheet` (used internally by `Table`).
 - `create(doc=None, name="Spreadsheet")` → `Sheet`
 - `set(address, value)`, `get(address)`, `get_contents()`, `clear(address)`, `clear_all()`
 - `set_alias(address, alias)`, `get_alias(address)`, `get_cell_from_alias(alias)`
+
+## `freecad.fcspreadsheetplus.view_providers`
+
+### `class ConfigRefViewProvider`
+
+View provider for `ConfigRef` objects. Sets the tree icon (config icon) and
+supports serialization (`__getstate__`/`__setstate__`). Attached automatically
+by `config_ref.create()` when the GUI is up.
+
+## `freecad.fcspreadsheetplus.dialogs.table_editor`
+
+### `class TableEditorDialog(master)`
+
+Qt dialog (a `QTableWidget`) that edits a `MasterSheet`'s configuration table.
+Parameters are columns, configurations are rows. Buttons add/remove rows and
+columns; **OK** writes the grid back to the sheet.
+
+## `freecad.fcspreadsheetplus.commands`
+
+Workbench commands (installed by `init_gui.py`):
+
+| Class | Command name |
+| :--- | :--- |
+| `CreateSheet` | `FCSpreadSheetPlus_CreateSheet` |
+| `CreateMasterSheet` | `FCSpreadSheetPlus_CreateMasterSheet` |
+| `CreateConfigRef` | `FCSpreadSheetPlus_CreateConfigRef` |
+| `EditConfigTable` | `FCSpreadSheetPlus_EditConfigTable` |
+| `SwitchConfiguration` | `FCSpreadSheetPlus_SwitchConfiguration` |

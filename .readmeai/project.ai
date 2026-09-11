@@ -17,7 +17,9 @@ custom workbench with toolbar/menu commands.
 - `freecad/fcspreadsheetplus/version.py` — `__version__`
 - `freecad/fcspreadsheetplus/init_gui.py` — GUI entry: registers icons, translations, commands, workbench
 - `freecad/fcspreadsheetplus/workbench.py` — `FCSpreadSheetPlusWorkbench` (Gui.Workbench)
-- `freecad/fcspreadsheetplus/commands/` — command classes (toolbar/menu actions)
+- `freecad/fcspreadsheetplus/commands/` — command classes (toolbar/menu actions): CreateSheet, CreateMasterSheet, CreateConfigRef, EditConfigTable, SwitchConfiguration
+- `freecad/fcspreadsheetplus/dialogs/` — `TableEditorDialog` (table editor)
+- `freecad/fcspreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon)
 - `freecad/fcspreadsheetplus/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
 - `freecad/fcspreadsheetplus/table.py` — configuration table model (rows = configs, cols = params)
 - `freecad/fcspreadsheetplus/master_sheet.py` — `MasterSheet` wrapper + `create()`
@@ -59,10 +61,13 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   passing 3/3
 - Phase 2: cross-file sharing via `App::PropertyXLink` + `link_master_by_path`,
   passing 1/1 (save → close → reopen resolves the external link)
+- Phase 3: UX — 5 commands (CreateSheet, CreateMasterSheet, CreateConfigRef,
+  EditConfigTable, SwitchConfiguration), `TableEditorDialog`, `ConfigRefViewProvider`,
+  toolbar/menu/context-menu wiring. `tests/test_gui.py` passes 4/4 offscreen;
+  headless tests still green (10 total).
 - Documented usage + API (`docs/usage.md`, `docs/api.md`)
 
 ### Pending (roadmap)
-- Phase 3: UX (commands, table editor, config switcher, ViewProviders)
 - Phase 4: robustness (caching, hidden-ref two-way binding, undo, i18n)
 - Publish via the Addon Manager
 

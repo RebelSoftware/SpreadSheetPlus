@@ -35,9 +35,16 @@
       "group": "test"
     },
     {
+      "label": "FreeCAD: Test GUI",
+      "type": "shell",
+      "command": "QT_QPA_PLATFORM=offscreen /home/chris/Applications/squashfs-root/AppRun freecad -M ${workspaceFolder} ${workspaceFolder}/tests/test_gui.py",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
       "label": "Syntax check",
       "type": "shell",
-      "command": "python3 -m py_compile ${workspaceFolder}/freecad/fcspreadsheetplus/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/commands/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/resources/*.py ${workspaceFolder}/tests/*.py",
+      "command": "python3 -m py_compile ${workspaceFolder}/freecad/fcspreadsheetplus/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/commands/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/dialogs/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/resources/*.py ${workspaceFolder}/tests/*.py",
       "problemMatcher": []
     }
   ]

@@ -14,7 +14,13 @@ Keep this file fast - it runs on every FreeCAD GUI startup.
 """
 
 from .resources import Resources
-from .commands import CreateSheet
+from .commands import (
+    CreateSheet,
+    CreateMasterSheet,
+    CreateConfigRef,
+    EditConfigTable,
+    SwitchConfiguration,
+)
 from .workbench import FCSpreadSheetPlusWorkbench
 
 # Install icons
@@ -24,7 +30,14 @@ Resources.gui_register_icons()
 Resources.gui_register_translations()
 
 # Install commands
-CreateSheet.Install()
+for command in (
+    CreateSheet,
+    CreateMasterSheet,
+    CreateConfigRef,
+    EditConfigTable,
+    SwitchConfiguration,
+):
+    command.Install()
 
 # Register the workbench
 FCSpreadSheetPlusWorkbench.Install()
