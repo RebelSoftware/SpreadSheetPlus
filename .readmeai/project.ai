@@ -81,6 +81,9 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   - [x] Step 4: content-addressed table snapshot cache (`Table.snapshot()`);
     ConfigRef sync parses the master once per content change, shared across
     ConfigRefs pointing at the same master
+  - [x] Step 5 (fix): re-type managed properties when a column's inferred type
+    changes — fixes a new column staying `App::PropertyString` and failing in
+    quantity contexts (e.g. a sketch constraint)
   - [ ] validation UI, i18n
 - Publish via the Addon Manager
 
@@ -109,3 +112,8 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   Guard with `hasattr(obj, name)` before `addProperty`, and only sync the
   `ManagedParameters` list in `_sync_values` — never the full parameter list —
   so colliding names are skipped instead of crashing on `getTypeIdOfProperty`.
+- A column created while still empty is first exposed as `App::PropertyString`.
+  Re-type existing managed properties whenever `infer_type` differs from the
+  current property type (only when the column has content), or new columns stay
+  string-typed and fail with "Failed to convert to Quantity" in sketch
+  constraints.

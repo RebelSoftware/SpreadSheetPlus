@@ -187,16 +187,35 @@ class ConfigRef:
 
         new_managed = []
         for name in params:
+            column = snapshot.column(name)
+            inferred = infer_type(column)
             if hasattr(obj, name):
-                if name in managed:
-                    new_managed.append(name)
-                # else: name collides with a built-in property or a Python
-                # attribute (e.g. a parameter named "recompute"); leave it
-                # unmanaged rather than clobbering the object.
+                if name not in managed:
+                    # name collides with a built-in property or a Python
+                    # attribute (e.g. a parameter named "recompute"); leave it
+                    # unmanaged rather than clobbering the object.
+                    continue
+                new_managed.append(name)
+                # Re-type an existing managed property if its type no longer
+                # matches the column. This matters when a column is created
+                # while still empty: it is first exposed as a string and must
+                # be upgraded once values arrive. Only re-type when the column
+                # has content, so a transiently empty column does not demote a
+                # typed property back to string.
+                current = obj.getTypeIdOfProperty(name)
+                if current != inferred and any(kind != EMPTY for kind, _ in column):
+                    obj.removeProperty(name)
+                    obj.addProperty(
+                        inferred,
+                        name,
+                        GROUP,
+                        f"Parameter '{name}' from the master configuration",
+                        read_only=True,
+                    )
                 continue
             # add a missing property (new parameter, or one lost during restore)
             obj.addProperty(
-                infer_type(snapshot.column(name)),
+                inferred,
                 name,
                 GROUP,
                 f"Parameter '{name}' from the master configuration",

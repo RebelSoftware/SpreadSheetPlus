@@ -114,6 +114,28 @@ def test_parameters_are_read_only_in_editor():
         FreeCAD.closeDocument("ConfigRefTest4")
 
 
+def test_new_column_retyped_after_values_arrive():
+    doc = FreeCAD.newDocument("ConfigRefTest5")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+
+        # Simulate GUI editing: a new column's header is typed first (so the
+        # column is still empty), then its value arrives in a later edit.
+        master.add_parameter("Diameter2")
+        doc.recompute()
+        assert ref.getTypeIdOfProperty("Diameter2") == "App::PropertyString"
+
+        master.set_value("TypeA", "Diameter2", 75)
+        doc.recompute()
+        assert ref.getTypeIdOfProperty("Diameter2") == "App::PropertyInteger"
+        assert ref.Diameter2 == 75
+    finally:
+        save_document(doc, "config_ref_new_column")
+        FreeCAD.closeDocument("ConfigRefTest5")
+
+
 def main():
     tests = [
         value
