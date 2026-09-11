@@ -52,6 +52,10 @@ class Table:
 
     def _set_cell(self, col: int, row: int, value) -> None:
         self.sheet.set(cell_address(col, row), str(value))
+        # Recompute so the sheet creates per-cell display properties. Until
+        # then FreeCAD's view shows the raw content (with the leading
+        # apostrophe marker on strings).
+        self.sheet.recompute()
 
     # -- schema ----------------------------------------------------------
     @property
@@ -131,6 +135,7 @@ class Table:
     def remove_configuration(self, name: str) -> None:
         row = self._config_row(name)
         self.sheet.removeRows(str(row + 1), 1)
+        self.sheet.recompute()
 
     def add_parameter(self, name: str) -> None:
         if not name:
@@ -145,6 +150,7 @@ class Table:
     def remove_parameter(self, name: str) -> None:
         col = self._param_col(name)
         self.sheet.removeColumns(column_name(col), 1)
+        self.sheet.recompute()
 
     # -- validation ------------------------------------------------------
     def validate(self) -> list[str]:

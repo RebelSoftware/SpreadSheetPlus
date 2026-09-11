@@ -11,6 +11,7 @@ import traceback
 import FreeCAD
 
 from freecad.fcspreadsheetplus.table import Table
+from fcsp_test_support import save_document
 
 
 def test_write_and_read():
@@ -56,6 +57,7 @@ def test_write_and_read():
         assert raw("B2") == "Length"
         assert raw("E5") == "True"
     finally:
+        save_document(doc, "table_write_and_read")
         FreeCAD.closeDocument("TableTest")
 
 
@@ -84,6 +86,7 @@ def test_add_remove():
         table.remove_parameter("Length")
         assert table.parameters() == ["Width"]
     finally:
+        save_document(doc, "table_add_remove")
         FreeCAD.closeDocument("TableTest2")
 
 
@@ -103,7 +106,29 @@ def test_missing_lookup():
             else:
                 raise AssertionError(f"expected KeyError for ({config}, {param})")
     finally:
+        save_document(doc, "table_missing_lookup")
         FreeCAD.closeDocument("TableTest3")
+
+
+def test_set_value_recomputes():
+    doc = FreeCAD.newDocument("TableTest4")
+    try:
+        sheet = doc.addObject("Spreadsheet::Sheet", "MasterSheet")
+        table = Table(sheet)
+        table.add_parameter("Length")
+        table.add_configuration("TypeA")
+        table.set_value("TypeA", "Length", 80)
+
+        # Mutators recompute the sheet, so each cell has a display property
+        # (getPropertyByName raises if the cell has no property).
+        try:
+            assert sheet.getPropertyByName("B2") is not None  # text header
+            assert sheet.getPropertyByName("B3") is not None  # numeric value
+        except Exception as exc:  # noqa: BLE001
+            raise AssertionError(f"cell property not created after set_value: {exc}") from exc
+    finally:
+        save_document(doc, "table_set_value_recomputes")
+        FreeCAD.closeDocument("TableTest4")
 
 
 def main():

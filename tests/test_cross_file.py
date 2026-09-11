@@ -5,9 +5,7 @@ Run inside FreeCAD's interpreter:
     ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_cross_file.py
 """
 
-import os
 import sys
-import tempfile
 import traceback
 
 import FreeCAD
@@ -15,6 +13,7 @@ import FreeCAD
 from freecad.fcspreadsheetplus.master_sheet import MasterSheet
 from freecad.fcspreadsheetplus.config_ref import create as create_config_ref
 from freecad.fcspreadsheetplus.config_ref import link_master_by_path
+from fcsp_test_support import TEST_DOCUMENTS_DIR
 
 
 def _build_master(doc):
@@ -39,9 +38,9 @@ def _close(doc):
 
 
 def test_cross_file_link_and_restore():
-    tmpdir = tempfile.mkdtemp()
-    lib_path = os.path.join(tmpdir, "library.FCStd")
-    proj_path = os.path.join(tmpdir, "project.FCStd")
+    TEST_DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    lib_path = str(TEST_DOCUMENTS_DIR / "cross_file_library.FCStd")
+    proj_path = str(TEST_DOCUMENTS_DIR / "cross_file_project.FCStd")
 
     lib = FreeCAD.newDocument("Library")
     proj = None
@@ -90,12 +89,7 @@ def test_cross_file_link_and_restore():
         _close(proj)
         _close(reopened)
         _close(lib)
-        try:
-            os.remove(lib_path)
-            os.remove(proj_path)
-            os.rmdir(tmpdir)
-        except OSError:
-            pass
+        # library + project remain in test_documents/ for visual review
 
 
 def main():

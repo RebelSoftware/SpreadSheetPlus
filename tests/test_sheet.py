@@ -11,6 +11,7 @@ import traceback
 import FreeCAD
 
 from freecad.fcspreadsheetplus.sheet import Sheet
+from fcsp_test_support import save_document
 
 
 def test_create_and_cells():
@@ -26,6 +27,7 @@ def test_create_and_cells():
         sheet.clear("A1")
         assert sheet.get_contents() == {}
     finally:
+        save_document(doc, "sheet_create_and_cells")
         FreeCAD.closeDocument("FCSpreadSheetPlusTest")
 
 
@@ -38,6 +40,7 @@ def test_aliases():
         assert sheet.get_alias("B2") == "seven"
         assert sheet.get_cell_from_alias("seven") == "B2"
     finally:
+        save_document(doc, "sheet_aliases")
         FreeCAD.closeDocument("FCSpreadSheetPlusTest")
 
 

@@ -12,6 +12,7 @@ import FreeCAD
 
 from freecad.fcspreadsheetplus.master_sheet import MasterSheet
 from freecad.fcspreadsheetplus.config_ref import create as create_config_ref
+from fcsp_test_support import save_document
 
 
 def _build_master(doc):
@@ -49,6 +50,7 @@ def test_config_ref_properties():
         assert ref.Width == 42
         assert ref.Enabled is False
     finally:
+        save_document(doc, "config_ref_properties")
         FreeCAD.closeDocument("ConfigRefTest")
 
 
@@ -71,6 +73,7 @@ def test_expression_read_through():
         assert abs(box.Length.Value - 85) < 1e-9
         assert abs(box.Width.Value - 42) < 1e-9
     finally:
+        save_document(doc, "config_ref_expression")
         FreeCAD.closeDocument("ConfigRefTest2")
 
 
@@ -87,6 +90,7 @@ def test_master_edit_propagates():
         doc.recompute()
         assert ref.Length == 123
     finally:
+        save_document(doc, "config_ref_master_edit")
         FreeCAD.closeDocument("ConfigRefTest3")
 
 
