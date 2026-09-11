@@ -71,7 +71,9 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - Phase 4: robustness — in progress
   - [x] Step 1: fix parameter-name collision crash; add `ConfigurationValid` /
     `ConfigurationError` status on ConfigRef (+ `tests/test_robustness.py`, 3 tests)
-  - [ ] caching, two-way binding (hiddenref), units, validation UI, i18n
+  - [x] Step 2: unit-aware cells — quantity columns expose typed properties
+    (`App::PropertyLength` / `Angle` / `Mass` / …); `tests/test_units.py`, 4 tests
+  - [ ] caching, two-way binding (hiddenref), validation UI, i18n
 - Publish via the Addon Manager
 
 ## FreeCAD gotchas (verified)

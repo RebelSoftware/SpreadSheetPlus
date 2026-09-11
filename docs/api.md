@@ -13,6 +13,12 @@ Spreadsheet column label for a 0-based index (`0` → `"A"`, `26` → `"AA"`).
 
 A1-style address for 0-based indices, e.g. `cell_address(1, 2)` → `"B3"`.
 
+### `parse_value(raw)` → `(kind, value)`
+
+Parse a raw data-cell string (as returned by `Sheet.getContents`) into a typed
+value. `kind` is one of `EMPTY`, `STRING`, `NUMBER`, `QUANTITY`, `EXPRESSION`;
+`value` is an `int` / `float` / `str` / `Units.Quantity` (or `None`).
+
 ### `class Table(sheet)`
 
 Wraps a `Spreadsheet::Sheet` with named-table access.
@@ -23,7 +29,9 @@ Wraps a `Spreadsheet::Sheet` with named-table access.
 | `set_title(text)` | write the title |
 | `parameters()` → `list[str]` | parameter names from row 2 |
 | `configurations()` → `list[str]` | configuration names from column A |
-| `get_value(config, param)` → `str` | raw cell content |
+| `get_value(config, param)` → `str` | display string of a cell (numbers/quantities as text) |
+| `get_data(config, param)` → `(kind, value)` | parsed typed value of a cell |
+| `get_column(param)` → `list[(kind, value)]` | parsed values for every configuration |
 | `set_value(config, param, value)` | write a cell (`str(value)`) |
 | `get_row(config)` → `dict[str, str]` | all parameters for one configuration |
 | `get_all()` → `dict[str, dict[str, str]]` | the whole table |
@@ -68,8 +76,11 @@ Object properties:
 - `Configuration` — `App::PropertyString` — the selected row name.
 - `ManagedParameters` — `App::PropertyStringList` — parameter names exposed as
   properties (managed automatically).
-- One dynamic **read-only** property per parameter (e.g. `Length`), typed by
-  inference.
+- One dynamic property per parameter (e.g. `Length`), typed by inference:
+  booleans, integers, floats, or quantity properties (`App::PropertyLength`,
+  `App::PropertyAngle`, `App::PropertyMass`, …) for unit-bearing cells.
+- `ConfigurationValid` / `ConfigurationError` — hidden status properties
+  reporting whether the selected configuration resolves.
 
 ## `freecad.fcspreadsheetplus.sheet`
 

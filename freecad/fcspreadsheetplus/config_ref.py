@@ -14,9 +14,28 @@ import os
 
 import FreeCAD as App
 
-from .table import Table
+from .table import EMPTY, EXPRESSION, NUMBER, QUANTITY, STRING, Table
 
 GROUP = "ConfigRef"
+
+# FreeCAD unit-type name -> property class for quantity columns. Unmapped unit
+# types fall back to App::PropertyString (the value is stored as text).
+_QUANTITY_PROPERTY_BY_TYPE = {
+    "Length": "App::PropertyLength",
+    "Angle": "App::PropertyAngle",
+    "Mass": "App::PropertyMass",
+    "Area": "App::PropertyArea",
+    "Volume": "App::PropertyVolume",
+    "Temperature": "App::PropertyTemperature",
+    "TimeSpan": "App::PropertyTime",
+    "Frequency": "App::PropertyFrequency",
+    "Force": "App::PropertyForce",
+    "Pressure": "App::PropertyPressure",
+    "Power": "App::PropertyPower",
+    "Velocity": "App::PropertyVelocity",
+    "Acceleration": "App::PropertyAcceleration",
+}
+_QUANTITY_PROPERTY_TYPES = frozenset(_QUANTITY_PROPERTY_BY_TYPE.values())
 
 
 def _coerce_bool(value: str) -> bool | None:
@@ -28,44 +47,50 @@ def _coerce_bool(value: str) -> bool | None:
     return None
 
 
-def _is_int(value: str) -> bool:
-    try:
-        int(value)
-        return True
-    except ValueError:
-        return False
+def _is_boolish(kind: str, value) -> bool:
+    if kind == STRING:
+        return _coerce_bool(value) is not None
+    if kind == NUMBER:
+        return value in (0, 1)
+    return False
 
 
-def _is_float(value: str) -> bool:
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-
-def infer_type(values: list[str]) -> str:
-    """Infer a FreeCAD property type from raw (string) cell values."""
-    nonempty = [v for v in values if v != ""]
+def infer_type(cells) -> str:
+    """Infer a FreeCAD property type from parsed ``(kind, value)`` cells."""
+    nonempty = [cell for cell in cells if cell[0] != EMPTY]
     if not nonempty:
         return "App::PropertyString"
-    if all(_coerce_bool(v) is not None for v in nonempty):
+    if all(_is_boolish(kind, value) for kind, value in nonempty):
         return "App::PropertyBool"
-    if all(_is_int(v) for v in nonempty):
-        return "App::PropertyInteger"
-    if all(_is_float(v) for v in nonempty):
+    if all(kind == NUMBER for kind, _ in nonempty):
+        if all(isinstance(value, int) for _, value in nonempty):
+            return "App::PropertyInteger"
         return "App::PropertyFloat"
+    if all(kind == QUANTITY for kind, _ in nonempty):
+        unit_types = {value.Unit.Type for _, value in nonempty}
+        if len(unit_types) == 1:
+            return _QUANTITY_PROPERTY_BY_TYPE.get(unit_types.pop(), "App::PropertyString")
+        return "App::PropertyString"
     return "App::PropertyString"
 
 
-def coerce(value: str, prop_type: str):
-    """Coerce a raw cell string to the value expected by a property type."""
+def coerce(value, kind: str, prop_type: str):
+    """Coerce a parsed cell value to the value expected by a property type."""
     if prop_type == "App::PropertyBool":
-        return _coerce_bool(value)
+        return _coerce_bool(value) if kind == STRING else bool(value)
     if prop_type == "App::PropertyInteger":
         return int(value)
-    if prop_type in ("App::PropertyFloat", "App::PropertyLength", "App::PropertyDistance"):
+    if prop_type == "App::PropertyFloat":
         return float(value)
+    if prop_type in _QUANTITY_PROPERTY_TYPES:
+        # Quantity properties accept Units.Quantity directly and convert
+        # numbers/strings to the property's unit (dimension-aware).
+        return value
+    # App::PropertyString (or unknown): store a faithful string.
+    if kind == NUMBER:
+        return str(value)
+    if kind == QUANTITY:
+        return value.UserString
     return value
 
 
@@ -169,9 +194,8 @@ class ConfigRef:
                 # unmanaged rather than clobbering the object.
                 continue
             # add a missing property (new parameter, or one lost during restore)
-            values = [table.get_value(c, name) for c in table.configurations()]
             obj.addProperty(
-                infer_type(values),
+                infer_type(table.get_column(name)),
                 name,
                 GROUP,
                 f"Parameter '{name}' from the master configuration",
@@ -186,20 +210,22 @@ class ConfigRef:
         config = obj.Configuration
         if not config:
             return
-        try:
-            row = table.get_row(config)
-        except KeyError:
-            return
         # Only touch properties we own (ManagedParameters). Iterating over the
         # full parameter list would also hit names that collide with built-in
         # properties or Python attributes (e.g. a parameter named "recompute"),
         # which must not be read or written here.
         for name in managed:
-            prop_type = obj.getTypeIdOfProperty(name)
-            value = coerce(row[name], prop_type)
             try:
-                if getattr(obj, name) != value:
-                    setattr(obj, name, value)
+                kind, value = table.get_data(config, name)
+            except KeyError:
+                return
+            if kind in (EMPTY, EXPRESSION):
+                continue
+            prop_type = obj.getTypeIdOfProperty(name)
+            coerced = coerce(value, kind, prop_type)
+            try:
+                if getattr(obj, name) != coerced:
+                    setattr(obj, name, coerced)
             except Exception:
                 # value cannot be coerced to the property type; leave as-is
                 continue

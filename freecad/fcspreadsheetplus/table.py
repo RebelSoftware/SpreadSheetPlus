@@ -15,11 +15,22 @@ or column, so the "read until empty" scan stays correct.
 
 from __future__ import annotations
 
+from FreeCAD import Units
+
 CONFIG_COLUMN = 0        # column A
 FIRST_PARAM_COLUMN = 1   # column B
 TITLE_ROW = 0            # spreadsheet row 1
 HEADER_ROW = 1           # spreadsheet row 2
 DATA_START_ROW = 2       # spreadsheet row 3
+
+# Data-cell kinds returned by parse_value().
+EMPTY = "empty"
+STRING = "string"
+NUMBER = "number"
+QUANTITY = "quantity"
+EXPRESSION = "expression"
+
+_UNITLESS = Units.Unit()
 
 
 def column_name(index: int) -> str:
@@ -37,6 +48,44 @@ def cell_address(col: int, row: int) -> str:
     return f"{column_name(col)}{row + 1}"
 
 
+def parse_value(raw: str):
+    """Parse a raw data-cell string into ``(kind, value)``.
+
+    FreeCAD's ``Sheet.getContents`` returns ``"80"`` for a number, ``"'text"``
+    for a string literal, ``"=80 mm"`` for a quantity literal (stored as an
+    expression), and ``"=A1*2"`` / ``"=pi"`` for formulas and constants.
+
+    ``kind`` is one of ``EMPTY``, ``STRING``, ``NUMBER``, ``QUANTITY``,
+    ``EXPRESSION``. ``value`` is the typed value (``int`` / ``float`` / ``str``
+    / ``Units.Quantity``), or ``None`` for empty cells.
+    """
+    if raw == "":
+        return (EMPTY, None)
+    if raw.startswith("'"):
+        return (STRING, raw[1:])
+    if raw.startswith("="):
+        text = raw[1:]
+        # Quantity literals start with a digit/sign/decimal point; formulas and
+        # constants ("=A1*2", "=pi") do not. The latter cannot be evaluated
+        # here, so they are reported as expressions.
+        if not text or text[0] not in "0123456789+-.":
+            return (EXPRESSION, text)
+        return _parse_quantity(text, EXPRESSION)
+    return _parse_quantity(raw, STRING)
+
+
+def _parse_quantity(text: str, fallback_kind: str):
+    """Parse ``text`` as a number or quantity; fall back to *fallback_kind*."""
+    try:
+        quantity = Units.Quantity(text)
+    except (ValueError, TypeError):
+        return (fallback_kind, text)
+    if quantity.Unit == _UNITLESS:
+        value = quantity.Value
+        return (NUMBER, int(value) if float(value).is_integer() else value)
+    return (QUANTITY, quantity)
+
+
 class Table:
     """Read/write access to a configuration table stored on a Spreadsheet::Sheet."""
 
@@ -44,8 +93,11 @@ class Table:
         self.sheet = sheet
 
     # -- raw cell access -------------------------------------------------
+    def _raw(self, col: int, row: int) -> str:
+        return self.sheet.getContents(cell_address(col, row))
+
     def _cell(self, col: int, row: int) -> str:
-        raw = self.sheet.getContents(cell_address(col, row))
+        raw = self._raw(col, row)
         # FreeCAD marks string cells with a leading apostrophe when read back
         # via getContents (numbers are returned bare). Strip it for clean text.
         return raw[1:] if raw.startswith("'") else raw
@@ -105,9 +157,33 @@ class Table:
                 return col
             col += 1
 
+    def get_data(self, config: str, param: str):
+        """Parsed ``(kind, value)`` for one data cell (see parse_value)."""
+        raw = self._raw(self._param_col(param), self._config_row(config))
+        return parse_value(raw)
+
+    def get_column(self, param: str) -> list:
+        """Parsed ``(kind, value)`` cells for every configuration of a parameter."""
+        col = self._param_col(param)
+        cells = []
+        row = DATA_START_ROW
+        while self._cell(CONFIG_COLUMN, row):
+            cells.append(parse_value(self._raw(col, row)))
+            row += 1
+        return cells
+
     def get_value(self, config: str, param: str) -> str:
-        """Raw (string) value of a cell."""
-        return self._cell(self._param_col(param), self._config_row(config))
+        """Display string of a data cell (numbers/quantities as plain text)."""
+        kind, value = self.get_data(config, param)
+        if kind == EMPTY:
+            return ""
+        if kind == STRING:
+            return value
+        if kind == NUMBER:
+            return str(value)
+        if kind == QUANTITY:
+            return value.UserString
+        return "=" + value  # EXPRESSION: keep the leading '=' marker
 
     def set_value(self, config: str, param: str, value) -> None:
         self._set_cell(self._param_col(param), self._config_row(config), value)

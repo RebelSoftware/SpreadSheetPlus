@@ -138,10 +138,23 @@ Parameters are exposed with a type inferred from their values:
 | all `True` / `False` (or `1` / `0`) | `App::PropertyBool` |
 | all integers | `App::PropertyInteger` |
 | all floats | `App::PropertyFloat` |
-| anything else | `App::PropertyString` |
+| all lengths (`80 mm`, `0.1 m`, …) | `App::PropertyLength` |
+| all angles (`45 deg`, …) | `App::PropertyAngle` |
+| all masses / areas / volumes / … | `App::PropertyMass` / `PropertyArea` / `PropertyVolume` / … |
+| anything else (text, mixed units, formulas) | `App::PropertyString` |
 
-Numbers are unitless; add units in the part's expression (`… * 1mm`).
-Per-parameter units are planned for Phase 4.
+Bare numbers are unitless: reference them with a unit in the part's
+expression (`<<ConfigRefA>>.Length * 1mm`).
+
+A quantity cell (e.g. `80 mm`) is exposed as a typed quantity property that
+carries its unit, so the part can reference it directly:
+
+```
+<<ConfigRefA>>.Length        →  80 mm
+```
+
+A column mixing units (or using an unmapped unit) falls back to
+`App::PropertyString`.
 
 ## Running the tests
 
