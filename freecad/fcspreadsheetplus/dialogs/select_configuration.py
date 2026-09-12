@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from PySide6 import QtWidgets
 
+from ..i18n import translate
+
 
 class SelectConfigurationDialog(QtWidgets.QDialog):
     """Pick a configuration from a sorted, searchable list.
@@ -15,7 +17,7 @@ class SelectConfigurationDialog(QtWidgets.QDialog):
 
     def __init__(self, configurations, current: str = "", parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Switch configuration")
+        self.setWindowTitle(translate("FCSpreadSheetPlus", "Switch configuration"))
         self.setModal(True)
         self.resize(320, 400)
         self._names = sorted(configurations, key=str.lower)
@@ -23,7 +25,7 @@ class SelectConfigurationDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout(self)
 
         self.search = QtWidgets.QLineEdit(self)
-        self.search.setPlaceholderText("Type to search…")
+        self.search.setPlaceholderText(translate("FCSpreadSheetPlus", "Type to search…"))
         self.search.setClearButtonEnabled(True)
         layout.addWidget(self.search)
 

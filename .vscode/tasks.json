@@ -4,7 +4,7 @@
     {
       "label": "FreeCAD: Run all tests",
       "type": "shell",
-      "command": "for t in test_sheet test_table test_config_ref test_cross_file test_robustness test_units; do echo \"=== $t ===\"; /home/chris/Applications/squashfs-root/AppRun freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
+      "command": "for t in test_sheet test_table test_config_ref test_cross_file test_robustness test_units test_i18n; do echo \"=== $t ===\"; /home/chris/Applications/squashfs-root/AppRun freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
       "problemMatcher": [],
       "group": { "kind": "test", "isDefault": true },
       "presentation": { "echo": true, "reveal": "always", "clear": true, "panel": "dedicated" }
@@ -47,6 +47,14 @@
       "type": "shell",
       "command": "/home/chris/Applications/squashfs-root/AppRun",
       "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_units.py"],
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "FreeCAD: Test i18n",
+      "type": "shell",
+      "command": "/home/chris/Applications/squashfs-root/AppRun",
+      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_i18n.py"],
       "problemMatcher": [],
       "group": "test"
     },

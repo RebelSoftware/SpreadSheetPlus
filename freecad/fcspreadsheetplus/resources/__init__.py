@@ -26,15 +26,15 @@ class Resources:
     _gui_translations_added: ClassVar[bool] = False
 
     @classmethod
+    def path(cls, relative: str) -> str:
+        """Resolve a package-relative resource path to its absolute path."""
+        return str(cls._pkg.joinpath(relative))
+
+    @classmethod
     def icon(cls, path: str) -> str:
         """Resolve an icon filename to its absolute path."""
         base = cls._pkg / "icons"
         return str(base.joinpath(path))
-
-    @classmethod
-    def __truediv__(cls, path: str) -> str:
-        """Resolve a relative resource path to its absolute path."""
-        return str(cls._pkg.joinpath(path))
 
     @classmethod
     def gui_register_icons(cls) -> bool:
@@ -54,7 +54,7 @@ class Resources:
             raise RuntimeError(f"{__name__}: Translations path cannot be added without Gui.")
         if cls._gui_translations_added:
             return False
-        translations = str(cls._pkg / "translations")
+        translations = cls.path("translations")
         App.Console.PrintLog(f"Installing {__name__}: translations={translations}\n")
         App.Gui.addLanguagePath(translations)
         App.Gui.updateLocale()

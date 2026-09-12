@@ -6,8 +6,7 @@ from __future__ import annotations
 import FreeCAD as App
 import FreeCADGui as Gui
 
-translate = App.Qt.translate
-
+from .i18n import translate
 from .resources import Resources
 from .commands import (
     CreateSheet,
@@ -37,8 +36,8 @@ class FCSpreadSheetPlusWorkbench(Gui.Workbench):
             SwitchConfiguration.Name,
             CreateSheet.Name,
         ]
-        self.appendToolbar("FC SpreadSheet Plus", commands)
-        self.appendMenu("FC SpreadSheet Plus", commands)
+        self.appendToolbar(translate("FCSpreadSheetPlus", "FC SpreadSheet Plus"), commands)
+        self.appendMenu(translate("FCSpreadSheetPlus", "FC SpreadSheet Plus"), commands)
 
     def Activated(self) -> None:
         pass

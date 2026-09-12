@@ -7,8 +7,7 @@ from typing import ClassVar
 
 import FreeCAD as App
 
-translate = App.Qt.translate
-
+from ..i18n import translate
 from ..resources import Resources
 
 

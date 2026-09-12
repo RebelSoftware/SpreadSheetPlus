@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from PySide6 import QtWidgets
 
+from ..i18n import translate
 from ..master_sheet import MasterSheet
 
 
@@ -18,7 +19,7 @@ class TableEditorDialog(QtWidgets.QDialog):
     def __init__(self, master: MasterSheet, parent=None) -> None:
         super().__init__(parent)
         self.master = master
-        self.setWindowTitle("Edit configuration table")
+        self.setWindowTitle(translate("FCSpreadSheetPlus", "Edit configuration table"))
         self.setModal(True)
         self._build_ui()
         self._reload()
@@ -35,10 +36,10 @@ class TableEditorDialog(QtWidgets.QDialog):
         layout.addWidget(self.status)
 
         row_buttons = QtWidgets.QHBoxLayout()
-        self.add_config_btn = QtWidgets.QPushButton("Add configuration", self)
-        self.remove_config_btn = QtWidgets.QPushButton("Remove configuration", self)
-        self.add_param_btn = QtWidgets.QPushButton("Add parameter", self)
-        self.remove_param_btn = QtWidgets.QPushButton("Remove parameter", self)
+        self.add_config_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Add configuration"), self)
+        self.remove_config_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Remove configuration"), self)
+        self.add_param_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Add parameter"), self)
+        self.remove_param_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Remove parameter"), self)
         for btn in (
             self.add_config_btn,
             self.remove_config_btn,
@@ -80,7 +81,7 @@ class TableEditorDialog(QtWidgets.QDialog):
             self.status.setText("\n".join(problems))
             self.status.setStyleSheet("color: #b00020; font-weight: bold;")
         else:
-            self.status.setText("Table OK")
+            self.status.setText(translate("FCSpreadSheetPlus", "Table OK"))
             self.status.setStyleSheet("color: #4caf50;")
 
     def _write_back(self) -> None:
@@ -98,7 +99,11 @@ class TableEditorDialog(QtWidgets.QDialog):
 
     # -- row / column editing -------------------------------------------
     def _add_configuration(self) -> None:
-        name, ok = QtWidgets.QInputDialog.getText(self, "Add configuration", "Configuration name:")
+        name, ok = QtWidgets.QInputDialog.getText(
+            self,
+            translate("FCSpreadSheetPlus", "Add configuration"),
+            translate("FCSpreadSheetPlus", "Configuration name:"),
+        )
         if ok and name.strip():
             self.master.add_configuration(name.strip())
             self._reload()
@@ -112,7 +117,11 @@ class TableEditorDialog(QtWidgets.QDialog):
         self._reload()
 
     def _add_parameter(self) -> None:
-        name, ok = QtWidgets.QInputDialog.getText(self, "Add parameter", "Parameter name:")
+        name, ok = QtWidgets.QInputDialog.getText(
+            self,
+            translate("FCSpreadSheetPlus", "Add parameter"),
+            translate("FCSpreadSheetPlus", "Parameter name:"),
+        )
         if ok and name.strip():
             self.master.add_parameter(name.strip())
             self._reload()

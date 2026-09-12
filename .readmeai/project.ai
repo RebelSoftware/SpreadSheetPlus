@@ -89,7 +89,9 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   - [x] Step 7: validation UI — table editor shows `validate()` results in a
     status line; `ConfigurationValid`/`ConfigurationError` now visible and
     read-only in the property editor
-  - [ ] i18n
+  - [x] Step 8: i18n infrastructure — central `i18n.translate()` helper, all UI
+    strings wrapped, `resources/translations/` with a German demo (.ts + .qm),
+    loaded via `Resources.gui_register_translations()`
 - Publish via the Addon Manager
 
 ## FreeCAD gotchas (verified)
