@@ -105,6 +105,10 @@ def test_parameters_are_read_only_in_editor():
         assert "ReadOnly" in ref.getEditorMode("Length")
         assert "ReadOnly" in ref.getEditorMode("Enabled")
 
+        # ...and the status properties are visible + read-only
+        assert ref.getEditorMode("ConfigurationValid") == ["ReadOnly"]
+        assert ref.getEditorMode("ConfigurationError") == ["ReadOnly"]
+
         # ...but execute() still keeps them in sync with the master
         master.set_value("TypeA", "Length", 999)
         doc.recompute()

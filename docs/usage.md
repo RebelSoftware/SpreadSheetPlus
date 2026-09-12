@@ -23,7 +23,8 @@ After loading the workbench, a **FC SpreadSheet Plus** toolbar and menu appear:
 
 The table editor shows parameters as columns and configurations as rows, with
 buttons to add/remove rows and columns. Changes are written back to the sheet
-when you press **OK**.
+when you press **OK**. A status line at the bottom reports validation problems
+(duplicate names, invalid parameter names) as you edit.
 
 **Switch Configuration** opens a sorted list of configuration names with a
 search box (type to filter, case-insensitive), so you pick a row instead of

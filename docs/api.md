@@ -94,8 +94,9 @@ Object properties:
 - One dynamic property per parameter (e.g. `Length`), typed by inference:
   booleans, integers, floats, or quantity properties (`App::PropertyLength`,
   `App::PropertyAngle`, `App::PropertyMass`, …) for unit-bearing cells.
-- `ConfigurationValid` / `ConfigurationError` — hidden status properties
-  reporting whether the selected configuration resolves.
+- `ConfigurationValid` / `ConfigurationError` — read-only status properties
+  (visible in the property editor) reporting whether the selected
+  configuration resolves.
 
 ## `freecad.fcspreadsheetplus.sheet`
 
@@ -121,7 +122,8 @@ by `config_ref.create()` when the GUI is up.
 
 Qt dialog (a `QTableWidget`) that edits a `MasterSheet`'s configuration table.
 Parameters are columns, configurations are rows. Buttons add/remove rows and
-columns; **OK** writes the grid back to the sheet.
+columns; **OK** writes the grid back to the sheet. A status line shows
+`Table.validate()` results (`Table OK`, or the list of problems).
 
 ## `freecad.fcspreadsheetplus.dialogs.select_configuration`
 

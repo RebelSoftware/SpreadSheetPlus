@@ -30,6 +30,10 @@ class TableEditorDialog(QtWidgets.QDialog):
         self.table.setAlternatingRowColors(True)
         layout.addWidget(self.table)
 
+        self.status = QtWidgets.QLabel(self)
+        self.status.setWordWrap(True)
+        layout.addWidget(self.status)
+
         row_buttons = QtWidgets.QHBoxLayout()
         self.add_config_btn = QtWidgets.QPushButton("Add configuration", self)
         self.remove_config_btn = QtWidgets.QPushButton("Remove configuration", self)
@@ -68,6 +72,16 @@ class TableEditorDialog(QtWidgets.QDialog):
             for c, param in enumerate(params):
                 item = QtWidgets.QTableWidgetItem(self.master.get_value(config, param))
                 self.table.setItem(r, c, item)
+        self._refresh_status()
+
+    def _refresh_status(self) -> None:
+        problems = self.master.validate()
+        if problems:
+            self.status.setText("\n".join(problems))
+            self.status.setStyleSheet("color: #b00020; font-weight: bold;")
+        else:
+            self.status.setText("Table OK")
+            self.status.setStyleSheet("color: #4caf50;")
 
     def _write_back(self) -> None:
         params = self.master.parameters()

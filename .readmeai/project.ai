@@ -86,7 +86,10 @@ and selects a named row, so many parts share one spreadsheet without copying it.
     quantity contexts (e.g. a sketch constraint)
   - [x] Step 6: configuration (row) names are case-insensitive; Switch
     Configuration now shows a sorted, searchable selection dialog
-  - [ ] validation UI, i18n
+  - [x] Step 7: validation UI — table editor shows `validate()` results in a
+    status line; `ConfigurationValid`/`ConfigurationError` now visible and
+    read-only in the property editor
+  - [ ] i18n
 - Publish via the Addon Manager
 
 ## FreeCAD gotchas (verified)

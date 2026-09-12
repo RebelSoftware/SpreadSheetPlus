@@ -99,6 +99,34 @@ def test_select_configuration_dialog():
     dlg.close()
 
 
+def test_table_editor_shows_validation():
+    from freecad.fcspreadsheetplus.master_sheet import MasterSheet
+    from freecad.fcspreadsheetplus.dialogs.table_editor import TableEditorDialog
+
+    doc = FreeCAD.newDocument("GuiTest3")
+    try:
+        master = MasterSheet.create(doc, name="MasterSheet")
+        master.add_parameter("Length")
+        master.add_configuration("TypeA")
+
+        dialog = TableEditorDialog(master)
+        assert dialog.status.text() == "Table OK"
+
+        # duplicate (case-insensitive) configuration name
+        master.sheet.set("A4", "typea")
+        dialog._reload()
+        assert "duplicate configuration names" in dialog.status.text()
+
+        # invalid parameter name
+        master.sheet.set("A4", "")
+        master.sheet.set("C2", "bad param")
+        dialog._reload()
+        assert "bad param" in dialog.status.text()
+        dialog.close()
+    finally:
+        FreeCAD.closeDocument("GuiTest3")
+
+
 def main():
     tests = [
         value

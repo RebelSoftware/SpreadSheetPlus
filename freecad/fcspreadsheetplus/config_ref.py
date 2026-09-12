@@ -125,7 +125,7 @@ class ConfigRef:
                 "ConfigurationValid",
                 GROUP,
                 "Whether the selected configuration resolves",
-                hidden=True,
+                read_only=True,
             )
         if not hasattr(obj, "ConfigurationError"):
             obj.addProperty(
@@ -133,7 +133,7 @@ class ConfigRef:
                 "ConfigurationError",
                 GROUP,
                 "Error message when the configuration cannot be resolved",
-                hidden=True,
+                read_only=True,
             )
         obj.Proxy = self
         self._syncing = False
@@ -277,6 +277,11 @@ class ConfigRef:
             obj.ConfigurationValid = valid
         if obj.ConfigurationError != error:
             obj.ConfigurationError = error
+        # Keep the status visible and read-only in the property editor (also
+        # migrates properties created as hidden in older documents).
+        for name in ("ConfigurationValid", "ConfigurationError"):
+            if obj.getEditorMode(name) != ["ReadOnly"]:
+                obj.setEditorMode(name, 1)
 
 
 def create(doc, master, configuration: str, name: str = "ConfigRef"):
