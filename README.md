@@ -10,13 +10,18 @@ objects through a thin wrapper and adds its own toolbar/menu commands.
 
 ## Install
 
-Copy (or symlink) this directory into your user `Mod` folder:
+**Addon Manager** — search for *FCSpreadSheetPlus* in `Tools → Addon manager`
+(available once the addon is listed in the FreeCAD Addon Index — see
+[docs/publishing.md](docs/publishing.md)).
+
+**Manual** — copy (or symlink) this directory into your user `Mod` folder:
 
 ```bash
 ln -s ~/projects/FCSpreadSheetPlus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus
 ```
 
-Then restart FreeCAD and select **FC SpreadSheet 2** from the workbench selector.
+Then restart FreeCAD and select **FC SpreadSheet Plus** from the workbench
+selector.
 
 To try it without installing, launch FreeCAD with an extra module path:
 
@@ -38,12 +43,17 @@ The importable package is `freecad.fcspreadsheetplus` (module `fcspreadsheetplus
 | `freecad/fcspreadsheetplus/table.py` | configuration table model |
 | `freecad/fcspreadsheetplus/master_sheet.py` | `MasterSheet` wrapper |
 | `freecad/fcspreadsheetplus/config_ref.py` | `ConfigRef` row-selection link |
+| `freecad/fcspreadsheetplus/dialogs/` | Qt dialogs (table editor, configuration picker) |
+| `freecad/fcspreadsheetplus/view_providers.py` | `ConfigRefViewProvider` |
+| `freecad/fcspreadsheetplus/i18n.py` | `translate()` helper |
 | `freecad/fcspreadsheetplus/resources/` | icons and translations |
 
 ## Documentation
 
 - [Usage guide](docs/usage.md) — how to use the workbench (scripting workflow)
 - [API reference](docs/api.md) — `Table`, `MasterSheet`, `ConfigRef`, `Sheet`
+- [Publishing](docs/publishing.md) — release + Addon Index submission
+- [Changelog](CHANGELOG.md)
 
 ### Running tests
 

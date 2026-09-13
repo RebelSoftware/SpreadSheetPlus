@@ -1,18 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
   <name>FCSpreadSheetPlus</name>
-  <description>A spreadsheet workbench similar to FreeCAD's built-in Spreadsheet workbench.</description>
+  <description>Keeps one master configuration table per project and lets many parts link to a shared row, so copying a part no longer copies the spreadsheet.</description>
   <version>0.1.0</version>
-  <date>2026-09-10</date>
-  <maintainer email="you@example.com">Chris</maintainer>
+  <date>2026-09-13</date>
+  <maintainer email="github@mailtwister.com">DeveloperChris</maintainer>
   <license file="LICENSE">LGPL-2.1-or-later</license>
   <url type="repository" branch="main">https://github.com/RebelSoftware/SpreadSheetPlus</url>
+  <url type="readme">https://github.com/RebelSoftware/SpreadSheetPlus/blob/main/README.md</url>
+  <url type="documentation">https://github.com/RebelSoftware/SpreadSheetPlus/blob/main/docs/usage.md</url>
+  <url type="bugtracker">https://github.com/RebelSoftware/SpreadSheetPlus/issues</url>
+  <icon>freecad/fcspreadsheetplus/resources/icons/fcspreadsheetplus-wb.svg</icon>
+  <tag>Spreadsheet</tag>
+  <tag>Configuration</tag>
+  <tag>Parameters</tag>
   <content>
     <workbench>
       <classname>FCSpreadSheetPlusWorkbench</classname>
       <subdirectory>freecad/fcspreadsheetplus</subdirectory>
       <freecadmin>1.0.0</freecadmin>
       <pythonmin>3.8</pythonmin>
+      <tag>Spreadsheet</tag>
     </workbench>
   </content>
 </package>

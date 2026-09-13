@@ -92,7 +92,11 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   - [x] Step 8: i18n infrastructure — central `i18n.translate()` helper, all UI
     strings wrapped, `resources/translations/` with a German demo (.ts + .qm),
     loaded via `Resources.gui_register_translations()`
-- Publish via the Addon Manager
+  - [x] Step 9: Addon Manager release prep — complete `package.xml` (real
+    maintainer, urls, icon, tags), FreeCAD Qt wrappers (`from PySide import`),
+    `docs/publishing.md` + `CHANGELOG.md`, `tests/test_metadata.py`
+- Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons
+  "Addon - Addition", then tag a release after review)
 
 ## FreeCAD gotchas (verified)
 - FreeCADCmd executes scripts with `__name__` set to the script basename (NOT

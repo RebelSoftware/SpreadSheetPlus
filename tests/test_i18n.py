@@ -8,7 +8,7 @@ Run inside FreeCAD's interpreter:
 import sys
 import traceback
 
-from PySide6 import QtCore
+from PySide import QtCore
 
 from freecad.fcspreadsheetplus import i18n
 from freecad.fcspreadsheetplus.resources import Resources

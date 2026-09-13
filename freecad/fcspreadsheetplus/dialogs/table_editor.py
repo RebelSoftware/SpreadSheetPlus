@@ -7,7 +7,7 @@ back through the MasterSheet API (which recomputes after each write).
 
 from __future__ import annotations
 
-from PySide6 import QtWidgets
+from PySide import QtWidgets
 
 from ..i18n import translate
 from ..master_sheet import MasterSheet

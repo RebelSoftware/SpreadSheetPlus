@@ -9,7 +9,7 @@ At runtime Qt looks the text up in any installed translator; the compiled
 
 from __future__ import annotations
 
-from PySide6 import QtCore
+from PySide import QtCore
 
 
 def translate(context: str, text: str, disambig: str | None = None) -> str:
