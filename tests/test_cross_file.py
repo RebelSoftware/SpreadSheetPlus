@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_cross_file.py
+    freecadcmd -M <repo-root> tests/test_cross_file.py
 """
 
 import sys

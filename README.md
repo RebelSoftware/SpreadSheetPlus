@@ -17,7 +17,7 @@ objects through a thin wrapper and adds its own toolbar/menu commands.
 **Manual** — copy (or symlink) this directory into your user `Mod` folder:
 
 ```bash
-ln -s ~/projects/SpreadSheetPlus ~/.local/share/FreeCAD/Mod/SpreadSheetPlus
+ln -s <repo-root> ~/.local/share/FreeCAD/Mod/SpreadSheetPlus
 ```
 
 Then restart FreeCAD and select **SpreadSheet Plus** from the workbench
@@ -26,8 +26,11 @@ selector.
 To try it without installing, launch FreeCAD with an extra module path:
 
 ```bash
-~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/SpreadSheetPlus
+<freecad> -M <repo-root>
 ```
+
+`<freecad>` is your FreeCAD executable (an AppImage, the extracted `AppRun`,
+or a system install) and `<repo-root>` is the path to this repository.
 
 ## Development
 
@@ -58,17 +61,20 @@ The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 ### Running tests
 
 Tests are dependency-free Python scripts that run inside FreeCAD's interpreter.
-Extract the AppImage once, then:
+Run them from the repository root with the root added to the module path:
 
 ```bash
-cd ~/Applications
-./FreeCAD_1.1.3-Linux-x86_64-py311.AppImage --appimage-extract
-cd ~/projects/SpreadSheetPlus
-~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_sheet.py
+freecadcmd -M <repo-root> tests/test_sheet.py
 ```
 
-Note: use `freecadcmd` (not the bare `python` from the AppImage) so that the
-`FreeCAD` module is importable.
+`freecadcmd` is FreeCAD's command-line executable — for an AppImage, invoke it
+as `AppRun freecadcmd …` or `./FreeCAD-….AppImage freecadcmd …`. Use `freecadcmd`
+(not the bare `python` from the AppImage) so the `FreeCAD` module is importable.
+The GUI test additionally needs the offscreen Qt platform:
+
+```bash
+QT_QPA_PLATFORM=offscreen freecad -M <repo-root> tests/test_gui.py
+```
 
 ### Scripting API
 

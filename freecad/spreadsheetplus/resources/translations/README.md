@@ -17,12 +17,11 @@ Qt only loads the **compiled** `.qm` at runtime — edit the `.ts` and recompile
 1. Copy `SpreadSheetPlus_de.ts` to `SpreadSheetPlus_<lang>.ts`
    (e.g. `_fr`, `_es`; use the two-letter top-level domain FreeCAD expects).
 2. Translate the `<translation>` elements (leave `<source>` unchanged).
-3. Compile it with Qt's `lrelease` (bundled with FreeCAD at
-   `usr/lib/qt6/bin/lrelease` inside the AppImage):
+3. Compile it with Qt's `lrelease` (e.g. `usr/lib/qt6/bin/lrelease` inside a
+   FreeCAD AppImage):
 
    ```bash
-   ~/Applications/squashfs-root/usr/lib/qt6/bin/lrelease \
-       SpreadSheetPlus_fr.ts -qm SpreadSheetPlus_fr.qm
+   lrelease SpreadSheetPlus_fr.ts -qm SpreadSheetPlus_fr.qm
    ```
 
 4. Restart FreeCAD with that language selected (`Edit → Preferences → General →

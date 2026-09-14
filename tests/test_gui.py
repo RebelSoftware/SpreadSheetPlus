@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    QT_QPA_PLATFORM=offscreen ~/Applications/squashfs-root/AppRun freecad -M ~/projects/SpreadSheetPlus tests/test_gui.py
+    QT_QPA_PLATFORM=offscreen freecad -M <repo-root> tests/test_gui.py
 """
 
 import sys

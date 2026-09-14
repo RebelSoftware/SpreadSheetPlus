@@ -27,5 +27,5 @@ You are helping build **SpreadSheetPlus**, a FreeCAD spreadsheet workbench
 - Syntax-check with `python3 -m py_compile` (no FreeCAD needed).
 - Full tests are dependency-free scripts run inside FreeCAD's interpreter.
   Extract the AppImage once, then:
-  `./squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_sheet.py`
+  `<freecadcmd> -M <repo-root> tests/test_sheet.py`
   (use `freecadcmd`, not the bare AppImage `python`, so `FreeCAD` is importable).
