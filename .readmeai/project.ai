@@ -72,9 +72,7 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - Renamed project FCSpreadSheetPlus → SpreadSheetPlus (package
   `freecad.spreadsheetplus`, workbench `SpreadSheetPlusWorkbench`, command IDs,
   translation context/files, icons, docs). Full suite green: 27 headless + 6 GUI.
-
-### Pending (roadmap)
-- Phase 4: robustness — in progress
+- Phase 4: robustness (9 steps complete)
   - [x] Step 1: fix parameter-name collision crash; add `ConfigurationValid` /
     `ConfigurationError` status on ConfigRef (+ `tests/test_robustness.py`, 3 tests)
   - [x] Step 2: unit-aware cells — quantity columns expose typed properties
@@ -98,6 +96,8 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   - [x] Step 9: Addon Manager release prep — complete `package.xml` (real
     maintainer, urls, icon, tags), FreeCAD Qt wrappers (`from PySide import`),
     `docs/publishing.md` + `CHANGELOG.md`, `tests/test_metadata.py`
+
+### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons
   "Addon - Addition", then tag a release after review)
 
