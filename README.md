@@ -70,11 +70,24 @@ freecadcmd -M <repo-root> tests/test_sheet.py
 `freecadcmd` is FreeCAD's command-line executable — for an AppImage, invoke it
 as `AppRun freecadcmd …` or `./FreeCAD-….AppImage freecadcmd …`. Use `freecadcmd`
 (not the bare `python` from the AppImage) so the `FreeCAD` module is importable.
-The GUI test additionally needs the offscreen Qt platform:
+
+The GUI tests (view providers, dialogs, dropping a `ConfigRef` into a part) need
+a Qt GUI, which is why `tests/run_freecad_gui.sh` runs FreeCAD with the offscreen
+Qt platform:
 
 ```bash
-QT_QPA_PLATFORM=offscreen freecad -M <repo-root> tests/test_gui.py
+tests/run_freecad_gui.sh -M <repo-root> tests/test_gui.py
+tests/run_freecad_gui.sh -M <repo-root> tests/test_container.py
 ```
+
+The script exists because the FreeCAD AppImage's own `AppRun` wrapper forces
+`QT_QPA_PLATFORM=xcb`, which overrides the caller's environment and opens a real
+window instead of running headless. Point it at another FreeCAD build with
+`FREECAD_APPDIR=<dir>`, and pick a different Qt platform with
+`FCSP_QPA_PLATFORM=<platform>` when you actually want to watch the run.
+
+In VS Code the tasks **FreeCAD: Run all tests** (headless), **FreeCAD: Test GUI**
+and **FreeCAD: Test container (GUI)** wrap the same commands.
 
 ### Scripting API
 

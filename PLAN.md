@@ -188,6 +188,13 @@ Example:
 ## 7. Decisions (confirmed with you)
 
 1. **Part scope** — support both `PartDesign::Body` and `App::Part`.
+   Implemented by creating `ConfigRef` objects as `Part::Part2DObjectPython`:
+   `PartDesign::Body::isAllowed()` accepts only PartDesign features, datums,
+   `Part::Part2DObject`, shape binders, `App::VarSet`, datum elements and local
+   coordinate systems, so an `App::FeaturePython` reference cannot live in a Body
+   (and a `Part::FeaturePython` would be taken as the Body's base feature).
+   `App::Part` and Std groups accept it too. See `docs/usage.md` and
+   `tests/test_container.py`.
 2. **Cross-file** — start same-document (Phase 1 uses `PropertyLink`); add
    cross-file via `PropertyXLink` / `App::Link` in Phase 2.
 3. **Edit model** — read-through only: values are edited at the `MasterSheet`;

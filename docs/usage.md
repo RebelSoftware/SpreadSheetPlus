@@ -26,6 +26,14 @@ buttons to add/remove rows and columns. Changes are written back to the sheet
 when you press **OK**. A status line at the bottom reports validation problems
 (duplicate names, invalid parameter names) as you edit.
 
+**Create ConfigRef** follows FreeCAD's container convention: if a Part container
+or a PartDesign Body is *active* (double-click it in the tree so its label is
+bold, or use **Active object** from its context menu), the new `ConfigRef` is
+created **inside** it. With no active container it is created at the document
+root, and you can drag it into a container afterwards. The `MasterSheet` always
+stays at the document root — it is shared between parts and must not travel with
+one of them.
+
 **Switch Configuration** opens a sorted list of configuration names with a
 search box (type to filter, case-insensitive), so you pick a row instead of
 typing its exact name.
@@ -105,6 +113,52 @@ doc.recompute()
 Editing a value at the master sheet updates every linked part on the next
 recompute — there is no copy of the sheet to keep in sync.
 
+## Putting a ConfigRef inside a part (container)
+
+A `ConfigRef` can live inside any container FreeCAD offers, so the reference
+travels with the part when you copy or move it:
+
+| Container | Accepted |
+| :--- | :--- |
+| `App::Part` (Part container) | yes |
+| `PartDesign::Body` | yes |
+| `App::DocumentObjectGroup` (Std group) | yes |
+
+Just drag the `ConfigRef` onto the container in the tree view (or call
+`part.addObject(ref)`). FreeCAD allows an object in only one container, so
+dragging it from one container to another moves it. The **Create ConfigRef**
+command already creates the reference in the container when one is active, so
+usually there is nothing to move.
+
+This works because FreeCAD is strict about what a `PartDesign::Body` accepts —
+`PartDesign::Body::isAllowed()` only takes `PartDesign` features, datums,
+`Part::Part2DObject`s, shape binders, `App::VarSet`, datum elements and local
+coordinate systems. A plain `App::FeaturePython` is refused by a Body, and a
+`Part::FeaturePython` is turned into the Body's *base feature*, so **new
+`ConfigRef`s are created as `Part::Part2DObjectPython`** — a scripted,
+geometry-less object that a Body accepts as an ordinary child (the same base
+Draft uses for its objects). The geometry/attachment properties that base type
+brings along are hidden in the property editor; the `ConfigRef` properties are
+the visible ones.
+
+### References created by version 0.1
+
+`ConfigRef`s saved by version 0.1 are `App::FeaturePython` objects. They keep
+working, but FreeCAD refuses to drag them into a `PartDesign::Body`, and an
+object's type cannot be changed in place. Convert one with:
+
+```python
+from freecad.spreadsheetplus.config_ref import convert_to_container_type
+
+convert_to_container_type(doc.getObject("ConfigRefA"))   # e.g. on document restore
+```
+
+The reference is rebuilt under the same internal name, keeps its label,
+master sheet, configuration and parameters, and is put back into the container
+it was in. Expressions that used it are re-applied, so
+`ConfigRefA.Length` keeps resolving; explicit `App::Link`s to the reference are
+not restored.
+
 ## Cross-file: a shared library
 
 Keep the master sheet in its own file and reference it from other files.
@@ -150,18 +204,41 @@ Parameters are exposed with a type inferred from their values:
 | anything else (text, mixed units, formulas) | `App::PropertyString` |
 
 Bare numbers are unitless: reference them with a unit in the part's
-expression (`<<ConfigRefA>>.Length * 1mm`).
+expression (`ConfigRefA.Length * 1mm`).
 
 A quantity cell (e.g. `80 mm`) is exposed as a typed quantity property that
 carries its unit, so the part can reference it directly:
 
 ```
-<<ConfigRefA>>.Length        →  80 mm
+ConfigRefA.Length        →  80 mm
 ```
 
 A column mixing units (or using an unmapped unit) falls back to
 `App::PropertyString`.
 
+## Referring to a ConfigRef in expressions
+
+Use the object's **internal name**:
+
+```
+ConfigRefA.Length
+```
+
+FreeCAD also accepts the `<<…>>` spelling, but that one refers to the object's
+**label**, not its name:
+
+```
+<<My Configuration>>.Length     # only while the label is "My Configuration"
+```
+
+Since a label is meant to be edited by the user, renaming a `ConfigRef` breaks
+every `<<old label>>` reference to it (with an "object not found in expression"
+error), while `ConfigRefA.Length` keeps working. Prefer the internal name — the
+name is what this addon sets and what the commands and docs use.
+
 ## Running the tests
 
-Use the VS Code task **FreeCAD: Run all tests**, or see the README.
+Use the VS Code tasks **FreeCAD: Run all tests** (headless),
+**FreeCAD: Test GUI** and **FreeCAD: Test container (GUI)**, or see the README
+for the commands. The GUI tests run FreeCAD with the offscreen Qt platform via
+`tests/run_freecad_gui.sh`.

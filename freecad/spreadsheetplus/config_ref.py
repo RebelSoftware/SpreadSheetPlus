@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """ConfigRef: a per-part link to a MasterSheet with a selected configuration.
 
-A ConfigRef is an `App::FeaturePython` that links to a `Spreadsheet::Sheet`
-(the master, possibly in another document) and selects one configuration row by
-name. It exposes that row's parameters as read-only dynamic properties,
-refreshed from the master whenever the configuration changes or the document
-recomputes.
+A ConfigRef links to a `Spreadsheet::Sheet` (the master, possibly in another
+document) and selects one configuration row by name. It exposes that row's
+parameters as read-only dynamic properties, refreshed from the master whenever
+the configuration changes or the document recomputes.
 """
 
 from __future__ import annotations
@@ -17,6 +16,46 @@ import FreeCAD as App
 from .table import EMPTY, EXPRESSION, NUMBER, QUANTITY, STRING, Table
 
 GROUP = "ConfigRef"
+
+#: Object type used for new ConfigRefs.
+#:
+#: A ConfigRef must be a child that its container accepts, and the containers
+#: differ (verified against FreeCAD 1.1, ``PartDesign::Body::isAllowed()`` and
+#: ``ViewProviderBody::canDropObject()``):
+#:
+#: * ``App::Part`` / ``App::DocumentObjectGroup`` accept any document object,
+#: * a ``PartDesign::Body`` only accepts ``PartDesign::Feature``, ``Part::Datum``,
+#:   ``Part::Part2DObject``, the ShapeBinders, ``App::VarSet``,
+#:   ``App::DatumElement`` and ``App::LocalCoordinateSystem``.
+#:
+#: So a plain ``App::FeaturePython`` (what this addon used to create) is refused
+#: by a Body, and a ``Part::FeaturePython`` is accepted but then *replaces the
+#: Body's BaseFeature* — neither is what a configuration reference wants.
+#: ``Part::Part2DObjectPython`` is the only Python-extensible type a Body takes
+#: as an ordinary child (it is what Draft uses for its scripted objects). The
+#: geometry/attachment properties it brings along are hidden in the property
+#: editor, see ``_hide_inherited_properties``.
+CONTAINER_OBJECT_TYPE = "Part::Part2DObjectPython"
+
+#: Type used by ConfigRefs created by earlier versions and by callers that ask
+#: for it explicitly. Still fully supported, but FreeCAD gives no way to change
+#: an object's type, so such a ConfigRef cannot be moved into a
+#: ``PartDesign::Body``; see ``convert_to_container_type``.
+LEGACY_OBJECT_TYPE = "App::FeaturePython"
+
+#: Properties inherited from the container-friendly base type that describe
+#: geometry/attachment and are meaningless for a configuration reference.
+_HIDDEN_BASE_PROPERTIES = (
+    "AttacherEngine",
+    "AttacherType",
+    "AttachmentSupport",
+    "AttachmentOffset",
+    "MapMode",
+    "MapPathParameter",
+    "MapReversed",
+    "Shape",
+    "ShapeMaterial",
+)
 
 # FreeCAD unit-type name -> property class for quantity columns. Unmapped unit
 # types fall back to App::PropertyString (the value is stored as text).
@@ -94,6 +133,57 @@ def coerce(value, kind: str, prop_type: str):
     return value
 
 
+def _supports_container_type(doc) -> bool:
+    """Whether *doc* can create a `Part::Part2DObjectPython` object."""
+    try:
+        import Part  # noqa: F401  (registers the Part object types)
+    except Exception:
+        return False
+    try:
+        return CONTAINER_OBJECT_TYPE in doc.supportedTypes()
+    except Exception:
+        # Older builds without Document.supportedTypes(): try our luck.
+        return True
+
+
+def object_type(doc=None) -> str:
+    """Return the object type to use for a new ConfigRef in *doc*.
+
+    Prefers `CONTAINER_OBJECT_TYPE` so the reference can be placed inside a
+    `PartDesign::Body` as well as in a `Part`/group; falls back to
+    `LEGACY_OBJECT_TYPE` when the Part module is unavailable.
+    """
+    doc = doc or App.ActiveDocument
+    if doc is not None and not _supports_container_type(doc):
+        return LEGACY_OBJECT_TYPE
+    return CONTAINER_OBJECT_TYPE
+
+
+def _add_object(doc, name: str, type_id: str | None = None):
+    """Add the ConfigRef's document object, with a legacy-type fallback."""
+    wanted = type_id or object_type(doc)
+    if wanted == CONTAINER_OBJECT_TYPE:
+        try:
+            return doc.addObject(wanted, name)
+        except Exception:
+            # The Part types are missing/not registered: fall back to a plain
+            # feature so creating a reference still works.
+            pass
+    return doc.addObject(LEGACY_OBJECT_TYPE, name)
+
+
+def _hide_inherited_properties(obj) -> None:
+    """Hide the base type's geometry/attachment properties in the editor."""
+    for name in _HIDDEN_BASE_PROPERTIES:
+        if not hasattr(obj, name):
+            continue
+        try:
+            if obj.getEditorMode(name) != ["Hidden"]:
+                obj.setEditorMode(name, 2)
+        except Exception:
+            continue
+
+
 class ConfigRef:
     """FeaturePython proxy for a ConfigRef object."""
 
@@ -137,6 +227,7 @@ class ConfigRef:
             )
         obj.Proxy = self
         self._syncing = False
+        _hide_inherited_properties(obj)
 
     # -- helpers ---------------------------------------------------------
     def _table(self, obj) -> Table | None:
@@ -285,20 +376,144 @@ class ConfigRef:
 
 
 def create(doc, master, configuration: str, name: str = "ConfigRef"):
-    """Create and return a ConfigRef FeaturePython object."""
+    """Create and return a ConfigRef object.
+
+    The object is created with `CONTAINER_OBJECT_TYPE` so it can be moved into
+    any container FreeCAD offers, including a `PartDesign::Body`.
+    """
     doc = doc or App.ActiveDocument
     if doc is None:
         raise ValueError("SpreadSheetPlus: no active document")
-    obj = doc.addObject("App::FeaturePython", name)
+    obj = _add_object(doc, name)
     ConfigRef(obj)
     obj.Master = master
     obj.Configuration = configuration
-    if App.GuiUp and hasattr(obj, "ViewObject") and obj.ViewObject is not None:
-        from .view_providers import ConfigRefViewProvider
-
-        ConfigRefViewProvider(obj.ViewObject)
+    attach_view_provider(obj)
     obj.recompute()
     return obj
+
+
+def attach_view_provider(obj) -> None:
+    """Give *obj* the ConfigRef tree icon (GUI only)."""
+    if not App.GuiUp:
+        return
+    view = getattr(obj, "ViewObject", None)
+    if view is None:
+        return
+    from .view_providers import ConfigRefViewProvider
+
+    ConfigRefViewProvider(view)
+
+
+def parent_group(obj):
+    """Return the object whose `Group` contains *obj*, if any."""
+    doc = getattr(obj, "Document", None)
+    if doc is None:
+        return None
+    for candidate in doc.Objects:
+        try:
+            if obj in getattr(candidate, "Group", []):
+                return candidate
+        except Exception:
+            continue
+    return None
+
+
+def _expressions_of(obj):
+    """Yield ``(property, expression)`` pairs defined on *obj*."""
+    try:
+        engine = obj.ExpressionEngine
+    except Exception:
+        return
+    for entry in engine or []:
+        try:
+            yield entry[0], entry[1]
+        except Exception:
+            continue
+
+
+def _expressions_mentioning(doc, name: str, label: str = ""):
+    """Collect expressions that mention *name* or *label*.
+
+    Entries are ``(object, property, expression)`` tuples, collected *before*
+    the old object is deleted: FreeCAD drops expressions that point at an object
+    which is removed, so they cannot be recovered afterwards.
+
+    Note that FreeCAD's ``<<...>>`` syntax refers to an object's **label**,
+    while ``Name.Property`` uses the internal name, so both spellings are
+    matched here.
+    """
+    found = []
+    for candidate in doc.Objects:
+        for prop, expression in _expressions_of(candidate):
+            if name in expression or (label and label in expression):
+                found.append((candidate, prop, expression))
+    return found
+
+
+def _reapply_expressions(references) -> None:
+    """Set the collected expressions again, forcing a fresh parse."""
+    for target, prop, expression in references:
+        try:
+            target.clearExpression(prop)
+            target.setExpression(prop, expression)
+        except Exception as exc:
+            App.Console.PrintWarning(
+                f"SpreadSheetPlus: could not re-apply expression {expression!r} on "
+                f"{target.Name}.{prop}: {exc}\n"
+            )
+
+
+def convert_to_container_type(obj):
+    """Rebuild a legacy ConfigRef as a container-friendly object.
+
+    ConfigRefs created by earlier versions are `App::FeaturePython` objects,
+    which FreeCAD refuses to drop into a `PartDesign::Body`. FreeCAD cannot
+    change an object's type, so the object is rebuilt under the **same name**
+    (so expressions referring to it, by name or by label, keep resolving) and
+    put back into the container it lived in.
+
+    Returns the new object, or *obj* unchanged when it already has a type that
+    containers accept.
+    """
+    doc = getattr(obj, "Document", None)
+    if doc is None:
+        raise ValueError("SpreadSheetPlus: object is not part of a document")
+    if obj.TypeId == CONTAINER_OBJECT_TYPE:
+        return obj
+
+    name = obj.Name
+    label = obj.Label
+    master = getattr(obj, "Master", None)
+    configuration = getattr(obj, "Configuration", "")
+    container = parent_group(obj)
+    # Expressions that use this reference are dropped when it is deleted, so
+    # remember them and put them back on the rebuilt object.
+    references = _expressions_mentioning(doc, name, label)
+
+    doc.openTransaction("Convert ConfigRef")
+    try:
+        doc.removeObject(name)
+        new_obj = _add_object(doc, name, CONTAINER_OBJECT_TYPE)
+        proxy = ConfigRef(new_obj)
+        if master is not None:
+            new_obj.Master = master
+        new_obj.Configuration = configuration
+        new_obj.Label = label
+        if container is not None:
+            container.addObject(new_obj)
+        attach_view_provider(new_obj)
+        # Build the parameter properties before anything else recomputes:
+        # expressions elsewhere in the document refer to them by name, and an
+        # evaluation that fails (property not there yet) would stay disabled.
+        proxy.execute(new_obj)
+        _reapply_expressions(references)
+        doc.recompute()
+    except Exception:
+        doc.abortTransaction()
+        raise
+    doc.commitTransaction()
+    return new_obj
 
 
 def link_master_by_path(config_ref, file_path: str, object_name: str = "MasterSheet"):

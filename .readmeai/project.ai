@@ -23,7 +23,9 @@ custom workbench with toolbar/menu commands.
 - `freecad/spreadsheetplus/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
 - `freecad/spreadsheetplus/table.py` — configuration table model (rows = configs, cols = params)
 - `freecad/spreadsheetplus/master_sheet.py` — `MasterSheet` wrapper + `create()`
-- `freecad/spreadsheetplus/config_ref.py` — `ConfigRef` FeaturePython (row selection, cross-file link)
+- `freecad/spreadsheetplus/config_ref.py` — `ConfigRef` proxy (row selection,
+  cross-file link) driving a `Part::Part2DObjectPython` object so it can live in
+  a `Part`, a `PartDesign::Body` or a group
 - `freecad/spreadsheetplus/resources/` — icons + translations + `Resources` manager
 
 ## Install / dev loop
@@ -96,6 +98,18 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   - [x] Step 9: Addon Manager release prep — complete `package.xml` (real
     maintainer, urls, icon, tags), FreeCAD Qt wrappers (`from PySide import`),
     `docs/publishing.md` + `CHANGELOG.md`, `tests/test_metadata.py`
+- Pre-publish fix 1: a ConfigRef can be moved into any container, including a
+  `PartDesign::Body`. New refs are created as `Part::Part2DObjectPython` (the
+  only Python-extensible type `PartDesign::Body::isAllowed()` accepts); the
+  base type's geometry/attachment properties are hidden in the editor.
+  `Create ConfigRef` also creates the reference in the **active** container
+  (active Body, else active Part — FreeCAD's convention, keys `pdbody`/`part`
+  via `Gui.ActiveDocument.ActiveView.getActiveObject`), falling back to the
+  document root. `config_ref.convert_to_container_type()` upgrades 0.1 refs in
+  place (same name/label/master/config, expressions re-applied). Tests:
+  `tests/test_container.py` (GUI, 11 tests). Also added
+  `tests/run_freecad_gui.sh` (see gotchas) and corrected the docs'
+  expression examples.
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons
@@ -131,3 +145,22 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   current property type (only when the column has content), or new columns stay
   string-typed and fail with "Failed to convert to Quantity" in sketch
   constraints.
+- FreeCAD containers differ in what they accept. `App::Part` /
+  `App::DocumentObjectGroup` take any document object, but
+  `PartDesign::Body::isAllowed()` only takes PartDesign features, `Part::Datum`,
+  `Part::Part2DObject`, ShapeBinders, `App::VarSet`, `App::DatumElement`,
+  `App::LocalCoordinateSystem`; `ViewProviderBody::canDropObject()` additionally
+  lets `Part::Feature` through, but dropping one *sets the Body's BaseFeature*.
+  A plain `App::FeaturePython` is refused outright. Hence ConfigRefs are
+  `Part::Part2DObjectPython`.
+- Expression syntax: `<<Something>>.Prop` is a **label** reference; renaming an
+  object's label breaks it ("Property 'X' not found in ..."). Use the internal
+  name: `ConfigRefA.Length`. Tests use the name form.
+- Running the GUI tests: the FreeCAD AppImage's `AppRun` forces
+  `QT_QPA_PLATFORM=xcb`, so `QT_QPA_PLATFORM=offscreen AppRun freecad …` opens a
+  real window and hangs. Use `tests/run_freecad_gui.sh` (replicates AppRun's env
+  but keeps offscreen); GUI scripts must close the main window and `sys.exit`
+  themselves.
+- `pkill -f <pattern>` kills the shell running it when the pattern appears in
+  its own command line (e.g. in a VS Code task); use `pkill -f 'squashfs[-]root'`
+  or avoid the pattern matching the command itself.

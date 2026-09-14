@@ -7,7 +7,11 @@ from .resources import Resources
 
 
 class ConfigRefViewProvider:
-    """ViewProvider for the ConfigRef FeaturePython object."""
+    """ViewProvider for the ConfigRef object (tree icon).
+
+    Attached to whatever object type the ConfigRef uses (`Part::Part2DObjectPython`
+    for new references, `App::FeaturePython` for pre-0.2 ones).
+    """
 
     def __init__(self, vobj) -> None:
         vobj.Proxy = self

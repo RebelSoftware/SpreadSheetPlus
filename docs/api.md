@@ -75,8 +75,35 @@ Delegates to `table`: `title`, `set_title`, `parameters`, `configurations`,
 
 ### `create(doc, master, configuration, name="ConfigRef")` → object
 
-Create a `ConfigRef` (`App::FeaturePython`) linked to `master` (a
-`Spreadsheet::Sheet`) and selecting `configuration` (a row name).
+Create a `ConfigRef` linked to `master` (a `Spreadsheet::Sheet`) and selecting
+`configuration` (a row name).
+
+The object is created with the type `CONTAINER_OBJECT_TYPE`
+(`Part::Part2DObjectPython`) so it can be placed inside any container FreeCAD
+offers, including a `PartDesign::Body` (see
+[Putting a ConfigRef inside a part](usage.md#putting-a-configref-inside-a-part-container)).
+If the Part module is unavailable, `create()` falls back to
+`LEGACY_OBJECT_TYPE` (`App::FeaturePython`).
+
+### `object_type(doc=None)` → str
+
+The object type `create()` uses for `doc` (see `CONTAINER_OBJECT_TYPE`).
+
+### `convert_to_container_type(obj)` → object
+
+Rebuild a `ConfigRef` created by version 0.1 (`App::FeaturePython`) as a
+container-friendly object. The object is recreated under the same internal name
+and re-added to its container; label, `Master`, `Configuration` and parameters
+are preserved, and expressions that referenced the old object are re-applied.
+Returns `obj` unchanged if it already has a suitable type.
+
+### `parent_group(obj)` → object or None
+
+The document object whose `Group` contains `obj` (the container it lives in).
+
+### `attach_view_provider(obj)`
+
+Attach `ConfigRefViewProvider` to `obj` (GUI only). Called by `create()`.
 
 ### `link_master_by_path(config_ref, file_path, object_name="MasterSheet")`
 
@@ -98,6 +125,17 @@ Object properties:
   (visible in the property editor) reporting whether the selected
   configuration resolves.
 
+The proxy is type-agnostic: it drives `Part::Part2DObjectPython` objects created
+by this version as well as the `App::FeaturePython` objects written by version
+0.1. The geometry/attachment properties of the container-friendly base type
+(`Shape`, `AttachmentSupport`, `MapMode`, …) are hidden in the property editor.
+
+### Module constants
+
+- `CONTAINER_OBJECT_TYPE` (`Part::Part2DObjectPython`) — what new ConfigRefs are
+  created as; the only Python-extensible type a `PartDesign::Body` accepts.
+- `LEGACY_OBJECT_TYPE` (`App::FeaturePython`) — the pre-0.2 type.
+- `GROUP` (`ConfigRef`) — the property group shown in the property editor.
 ## `freecad.spreadsheetplus.sheet`
 
 ### `class Sheet(obj)`
@@ -144,3 +182,18 @@ Workbench commands (installed by `init_gui.py`):
 | `CreateConfigRef` | `SpreadSheetPlus_CreateConfigRef` |
 | `EditConfigTable` | `SpreadSheetPlus_EditConfigTable` |
 | `SwitchConfiguration` | `SpreadSheetPlus_SwitchConfiguration` |
+
+### `freecad.spreadsheetplus.commands.create_config_ref`
+
+- `ACTIVE_CONTAINER_KEYS` — `("pdbody", "part")`, FreeCAD's keys for the active
+  container (`Gui/ActiveObjectList.h`).
+- `active_container(doc=None)` → object or `None` — the container new objects
+  should go into: the active `PartDesign::Body`, else the active `App::Part`,
+  in the same document (`None` when nothing is active or the GUI is down).
+- `add_to_active_container(obj, doc=None)` → container or `None` — add `obj` to
+  that container (warns instead of raising if the container refuses it).
+
+`CreateConfigRef` uses them, so a reference created while a body/part is active
+is added to it — the same behaviour as FreeCAD's own object commands. The
+`MasterSheet` deliberately stays at the document root: it is shared by several
+parts and must not be copied along with a container.

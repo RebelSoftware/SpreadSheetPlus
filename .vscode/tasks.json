@@ -1,83 +1,148 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "FreeCAD: Run all tests",
-      "type": "shell",
-      "command": "for t in test_sheet test_table test_config_ref test_cross_file test_robustness test_units test_i18n test_metadata; do echo \"=== $t ===\"; /home/chris/Applications/squashfs-root/AppRun freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
-      "problemMatcher": [],
-      "group": { "kind": "test", "isDefault": true },
-      "presentation": { "echo": true, "reveal": "always", "clear": true, "panel": "dedicated" }
-    },
-    {
-      "label": "FreeCAD: Test sheet",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_sheet.py"],
-      "problemMatcher": [],
-      "group": "test",
-      "presentation": { "clear": true }
-    },
-    {
-      "label": "FreeCAD: Test table",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_table.py"],
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "FreeCAD: Test ConfigRef",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_config_ref.py"],
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "FreeCAD: Test robustness",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_robustness.py"],
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "FreeCAD: Test units",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_units.py"],
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "FreeCAD: Test i18n",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_i18n.py"],
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "FreeCAD: Test metadata",
-      "type": "shell",
-      "command": "/home/chris/Applications/squashfs-root/AppRun",
-      "args": ["freecadcmd", "-M", "${workspaceFolder}", "${workspaceFolder}/tests/test_metadata.py"],
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "FreeCAD: Test GUI",
-      "type": "shell",
-      "command": "QT_QPA_PLATFORM=offscreen /home/chris/Applications/squashfs-root/AppRun freecad -M ${workspaceFolder} ${workspaceFolder}/tests/test_gui.py",
-      "problemMatcher": [],
-      "group": "test"
-    },
-    {
-      "label": "Syntax check",
-      "type": "shell",
-      "command": "python3 -m py_compile ${workspaceFolder}/freecad/spreadsheetplus/*.py ${workspaceFolder}/freecad/spreadsheetplus/commands/*.py ${workspaceFolder}/freecad/spreadsheetplus/dialogs/*.py ${workspaceFolder}/freecad/spreadsheetplus/resources/*.py ${workspaceFolder}/tests/*.py",
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "FreeCAD: Run all tests",
+			"type": "shell",
+			"command": "for t in test_sheet test_table test_config_ref test_cross_file test_robustness test_units test_i18n test_metadata; do echo \"=== $t ===\"; ${workspaceFolder}/tests/run_freecad_gui.sh freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
+			"problemMatcher": [],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"clear": true,
+				"panel": "dedicated"
+			}
+		},
+		{
+			"label": "FreeCAD: Test sheet",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_sheet.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test table",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_table.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test ConfigRef",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_config_ref.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test robustness",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_robustness.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test units",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_units.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test i18n",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_i18n.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test metadata",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"freecadcmd",
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_metadata.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "FreeCAD: Test GUI",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_gui.py"
+			],
+			"problemMatcher": [],
+			"group": "test",
+			"presentation": {
+				"clear": true
+			}
+		},
+		{
+			"label": "FreeCAD: Test container (GUI)",
+			"type": "shell",
+			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
+			"args": [
+				"-M",
+				"${workspaceFolder}",
+				"${workspaceFolder}/tests/test_container.py"
+			],
+			"problemMatcher": [],
+			"group": "test",
+			"presentation": {
+				"clear": true
+			}
+		},
+		{
+			"label": "Syntax check",
+			"type": "shell",
+			"command": "python3 -m py_compile ${workspaceFolder}/freecad/spreadsheetplus/*.py ${workspaceFolder}/freecad/spreadsheetplus/commands/*.py ${workspaceFolder}/freecad/spreadsheetplus/dialogs/*.py ${workspaceFolder}/freecad/spreadsheetplus/resources/*.py ${workspaceFolder}/tests/*.py",
+			"problemMatcher": []
+		}
+	]
 }

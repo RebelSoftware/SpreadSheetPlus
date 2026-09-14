@@ -3,6 +3,40 @@
 All notable changes to **SpreadSheetPlus** are recorded here. Dates are
 ISO 8601 (`YYYY-MM-DD`).
 
+## [Unreleased]
+
+**Fixed**
+- A `ConfigRef` can now be moved (dragged) into any container, including a
+  `PartDesign::Body`, not just a `Part` or a Std group. New references are
+  created as `Part::Part2DObjectPython`, the only Python-extensible type a Body
+  accepts (`PartDesign::Body::isAllowed()`); a plain `App::FeaturePython` was
+  refused by a Body and a `Part::FeaturePython` would have become the Body's
+  base feature. The geometry/attachment properties of that base type are hidden
+  in the property editor.
+- **Create ConfigRef** now creates the reference inside the *active* container
+  (the active `PartDesign::Body`, else the active `Part`) as FreeCAD's own
+  object commands do; with no active container it stays at the document root.
+- `convert_to_container_type(obj)` upgrades a reference created by 0.1 in place,
+  preserving its label, master sheet, configuration, parameters, container and
+  the expressions that use it.
+
+**Docs**
+- New usage section on placing a `ConfigRef` inside a part/body, and on
+  upgrading references from 0.1.
+- Corrected expression examples: `<<Name>>.Property` in FreeCAD expression
+  syntax refers to an object's **label** (and breaks when the object is
+  relabelled); the internal-name form `ConfigRefA.Length` is the robust one and
+  is what the docs now use.
+
+**Tests / tooling**
+- Added `tests/test_container.py` (GUI): dropping a `ConfigRef` into a
+  `PartDesign::Body` / `App::Part` / Std group, moving it between containers,
+  expression syntax, and the 0.1→0.2 conversion.
+- Added `tests/run_freecad_gui.sh`, which runs the GUI tests with the offscreen
+  Qt platform. The AppImage's `AppRun` wrapper forces `QT_QPA_PLATFORM=xcb`,
+  which overrode the caller's environment and opened a real window; the VS Code
+  GUI test task now uses this script.
+
 ## [0.1.0] — 2026-09-13
 
 Initial release.
