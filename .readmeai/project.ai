@@ -53,6 +53,11 @@ custom workbench with toolbar/menu commands.
   VS Code workspace folder, or plain `git -C ~/projects/FreeCad show <tag>:<path>`.
 - VS Code tasks: *FreeCAD: Run all tests* (headless), *FreeCAD: Test GUI*,
   *FreeCAD: Test container (GUI)*, *Syntax check* — all via the runner.
+- **codebase-memory** graph indexes exist for `src`, `src/Gui`, `src/App`,
+  `src/Mod/Part`, `src/Mod/PartDesign`, `src/Mod/Spreadsheet` (project names are
+  the path with `/` → `-`, e.g. `home-chris-projects-FreeCad-src-Gui`). Use
+  `search_graph(query=…)` + `get_code_snippet` + `trace_path` to find code fast;
+  `semantic_query` was unreliable (see `docs/development.md`).
 
 ## Notes / decisions
 - License: LGPL-2.1-or-later (same as FreeCAD)

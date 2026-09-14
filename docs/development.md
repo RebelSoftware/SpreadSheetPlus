@@ -127,6 +127,56 @@ Two workable arrangements:
 Neither is needed for looking something up: `git show <tag>:<path>` and
 `git grep <pattern> <tag> -- <path>` read the checkout in place.
 
+## Using codebase-memory for FreeCAD's source
+
+The `codebase-memory-mcp` server (v0.5.23) builds a knowledge graph of a
+directory — functions, classes, calls, includes — and answers symbol, call-path
+and architecture questions from it. For "where is this defined", "who calls
+this", "what does this class do", it is much quicker than reading files.
+
+Indexed scopes for this addon (re-index after pulling new FreeCAD source):
+
+| Project | Path | Nodes |
+| :--- | :--- | ---: |
+| `home-chris-projects-FreeCad-src` | whole `src` (incl. 3rdParty) | 116k |
+| `home-chris-projects-FreeCad-src-Gui` | `src/Gui` — tree, view providers, commands | 16k |
+| `home-chris-projects-FreeCad-src-Mod-Part` | `src/Mod/Part` — Part2DObject, features | 8k |
+| `home-chris-projects-FreeCad-src-App` | `src/App` — Document, FeaturePython, links, groups | 5k |
+| `home-chris-projects-FreeCad-src-Mod-PartDesign` | `src/Mod/PartDesign` — Body, its view provider | 4k |
+| `home-chris-projects-FreeCad-src-Mod-Spreadsheet` | `src/Mod/Spreadsheet` — Sheet, cells | 1k |
+
+What works well:
+
+* `search_graph(query=…)` — keyword (BM25) over symbol names, returns
+  `file_path` with line ranges. This is the workhorse.
+* `get_code_snippet(qualified_name=…)` — read a symbol found above.
+* `trace_path(function_name=…, direction="inbound"|"outbound")` — callers and
+  callees, resolved to classes (pair it with `get_code_snippet` for the code).
+* `query_graph` — raw Cypher over the graph, e.g. aggregates and hot-path
+  candidates.
+* `get_architecture` — package sizes and call-graph clusters; good for
+  orientation, too coarse for a specific question.
+
+What to avoid:
+
+* `semantic_query` was unreliable in this version: on both the big and the
+  focused indexes it returned unrelated 3rd-party matches with negative scores.
+  Use keywords.
+* The whole-`src` index is dominated by `3rdParty/` (salomesmesh, Clipper2, VTK
+  shims). For a precise answer use the module project; use the full index for
+  cross-module questions ("who implements `canDropObject` anywhere?").
+
+Housekeeping:
+
+* Each indexed root gets a `.codebase-memory/` folder (`config.json`,
+  `status.json`); the graphs live in `~/.cache/codebase-memory-mcp` (the full
+  `src` graph is ~550 MB — `delete_project` frees a scope you no longer need).
+* `.codebase-memory/` is git-ignored in this repository, and the FreeCAD clone
+  lists it in `.git/info/exclude` (a local, non-committed ignore) so indexing
+  never shows up as untracked files there.
+* Index a **subdirectory** rather than a whole repository: a focused index of a
+  few thousand nodes gives far cleaner results, and each one takes seconds.
+
 ## Test documents
 
 `tests/fcsp_test_support.py:save_document()` writes generated documents to
