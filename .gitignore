@@ -8,4 +8,6 @@ squashfs-root/
 .bash_history_local.dedup
 .history
 test_documents/
+.codebase-memory/
+
 
