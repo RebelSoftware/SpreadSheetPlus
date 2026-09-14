@@ -57,7 +57,10 @@ custom workbench with toolbar/menu commands.
   `src/Mod/Part`, `src/Mod/PartDesign`, `src/Mod/Spreadsheet` (project names are
   the path with `/` → `-`, e.g. `home-chris-projects-FreeCad-src-Gui`). Use
   `search_graph(query=…)` + `get_code_snippet` + `trace_path` to find code fast;
-  `semantic_query` was unreliable (see `docs/development.md`).
+  `semantic_query` is still broken in 0.10.8 (tested on a fresh full index).
+  Every tool also works from the terminal: `codebase-memory-mcp cli <tool> …`
+  (handy when a client hides a tool), and the server serves a graph UI on
+  port 9749. See `docs/development.md`.
 
 ## Notes / decisions
 - License: LGPL-2.1-or-later (same as FreeCAD)

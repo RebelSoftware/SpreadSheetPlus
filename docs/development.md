@@ -129,10 +129,25 @@ Neither is needed for looking something up: `git show <tag>:<path>` and
 
 ## Using codebase-memory for FreeCAD's source
 
-The `codebase-memory-mcp` server (v0.5.23) builds a knowledge graph of a
-directory — functions, classes, calls, includes — and answers symbol, call-path
+The `codebase-memory-mcp` server (v0.10.8) builds a knowledge graph of a
+directory — symbols, calls, includes, complexity — and answers symbol, call-path
 and architecture questions from it. For "where is this defined", "who calls
 this", "what does this class do", it is much quicker than reading files.
+
+Every tool is also a CLI, which sidesteps a client's per-tool switches
+(`cli <tool> --help` documents the flags; raw JSON still works but is
+deprecated):
+
+```bash
+B=~/.local/bin/codebase-memory-mcp
+$B cli index_repository --repo-path <dir> --mode moderate
+$B cli search_graph --project <project> --query canDropObject
+$B cli index_status --project <project>
+$B cli check_index_coverage --project <project> --scopes '["."]'
+```
+
+The server also serves a graph UI (`--ui=true`, port 9749 by default), and
+`--tool-profile=analysis|scout` restricts what an MCP client is allowed to call.
 
 Indexed scopes for this addon (re-index after pulling new FreeCAD source):
 
@@ -156,15 +171,24 @@ What works well:
   candidates.
 * `get_architecture` — package sizes and call-graph clusters; good for
   orientation, too coarse for a specific question.
+* `index_status` / `check_index_coverage` — report `expected_nodes`/`edges`,
+  `parse_partial` (C++ constructs the parser had to skip, with line ranges) and
+  `not_indexed_files`. Treat a partial parse as "double-check in the source".
 
 What to avoid:
 
-* `semantic_query` was unreliable in this version: on both the big and the
-  focused indexes it returned unrelated 3rd-party matches with negative scores.
-  Use keywords.
+* `semantic_query` is still unusable in 0.10.8. Tested against a **freshly built
+  `full` index** of `src/Mod/Spreadsheet`, it returned unrelated symbols
+  (colour-picker widgets, accessibility classes) with negative scores, while a
+  keyword query for the same intent found `Sheet::removeRows` and friends
+  exactly. Use keywords.
 * The whole-`src` index is dominated by `3rdParty/` (salomesmesh, Clipper2, VTK
   shims). For a precise answer use the module project; use the full index for
-  cross-module questions ("who implements `canDropObject` anywhere?").
+  cross-module questions ("who implements `canDropObject` anywhere?"). A
+  `.cbmignore` file in an indexed root can exclude paths from a scope.
+* Upgrading the tool needs a fresh index for the new metrics/edges to appear
+  (`delete_project` then `index_repository`); older graphs keep working for
+  keyword queries.
 
 Housekeeping:
 
