@@ -36,6 +36,10 @@ ISO 8601 (`YYYY-MM-DD`).
   Qt platform. The AppImage's `AppRun` wrapper forces `QT_QPA_PLATFORM=xcb`,
   which overrode the caller's environment and opened a real window; the VS Code
   GUI test task now uses this script.
+- Added `docs/development.md`: running FreeCAD headlessly (the `AppRun`
+  `QT_QPA_PLATFORM` trap, the runner's options, GUI-script exit requirements),
+  the VS Code tasks, and where to read FreeCAD's behaviour in a local source
+  checkout.
 
 ## [0.1.0] — 2026-09-13
 

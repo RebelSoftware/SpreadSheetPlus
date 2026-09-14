@@ -31,8 +31,28 @@ custom workbench with toolbar/menu commands.
 ## Install / dev loop
 - Dev (no install): `<freecad> -M <repo-root>`
 - Or symlink: `ln -s <repo-root> ~/.local/share/FreeCAD/Mod/SpreadSheetPlus`
-- Headless tests: extract an AppImage once, then
-  `<freecadcmd> -M <repo-root> tests/test_sheet.py`
+- Headless tests: `tests/run_freecad_gui.sh freecadcmd -M <repo-root> tests/<name>.py`
+- GUI tests: `tests/run_freecad_gui.sh -M <repo-root> tests/<name>.py`
+  (the runner forces the offscreen Qt platform — AppRun sets `xcb` itself, see
+  `docs/development.md`).
+- Detailed how-and-why: `docs/development.md` (headless running, the AppRun
+  `QT_QPA_PLATFORM=xcb` trap, VS Code tasks, where to look in the FreeCAD
+  source).
+
+## Dev environment (this machine)
+- FreeCAD under test: extracted AppImage at `~/Applications/squashfs-root`,
+  version **1.1.3** (`Tests/run_freecad_gui.sh` finds it; `FREECAD_APPDIR`
+  overrides).
+- Full FreeCAD **source checkout**: `~/projects/FreeCad` — on `main`
+  (2.x development) but with tags, so read the code of the build under test with
+  `git -C ~/projects/FreeCad show 1.1.3:src/...` or
+  `git -C ~/projects/FreeCad grep -n <pattern> 1.1.3 -- src/...`.
+  Keep it outside this repo: a symlink inside the repo is searchable
+  (`search.followSymlinks` is on by default) but puts a few GB of FreeCAD inside
+  the addon, where editors/watchers/globs have to walk it — prefer a second
+  VS Code workspace folder, or plain `git -C ~/projects/FreeCad show <tag>:<path>`.
+- VS Code tasks: *FreeCAD: Run all tests* (headless), *FreeCAD: Test GUI*,
+  *FreeCAD: Test container (GUI)*, *Syntax check* — all via the runner.
 
 ## Notes / decisions
 - License: LGPL-2.1-or-later (same as FreeCAD)
@@ -52,6 +72,9 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 ## Docs (written as we go)
 - `docs/usage.md` — how-to: table layout, scripting quick start, cross-file, value types.
 - `docs/api.md` — reference for `Table`, `MasterSheet`, `ConfigRef`, `Sheet`.
+- `docs/development.md` — running FreeCAD headlessly (the AppRun
+  `QT_QPA_PLATFORM=xcb` trap + `tests/run_freecad_gui.sh`), VS Code tasks, how to
+  read FreeCAD's behaviour from the local source checkout.
 - Convention: each phase ships its docs in the same commit.
 
 ## Tasks
@@ -116,6 +139,8 @@ and selects a named row, so many parts share one spreadsheet without copying it.
   "Addon - Addition", then tag a release after review)
 
 ## FreeCAD gotchas (verified)
+See `docs/development.md` for how to *run* FreeCAD here; the list below is about
+FreeCAD's behaviour.
 - FreeCADCmd executes scripts with `__name__` set to the script basename (NOT
   `"__main__"`) — test scripts must call `main()` unconditionally.
 - `sys.exit(n)` inside FreeCADCmd propagates the exit code, but Python stdout is

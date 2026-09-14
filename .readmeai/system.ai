@@ -23,9 +23,24 @@ You are helping build **SpreadSheetPlus**, a FreeCAD spreadsheet workbench
 ## After completing a task
 - Update `.readmeai/project.ai` (Completed / Pending tasks) to reflect the change.
 
-## Testing
+## Running FreeCAD and the tests
+Read `docs/development.md` for the full story; the rules are:
+
+- Always use **absolute** paths: `-M <repo-root>` and the script path. A
+  relative `-M .` breaks as soon as the shell's cwd is not the repo root and
+  looks like the addon is not installed.
+- Headless suites: `<repo>/tests/run_freecad_gui.sh freecadcmd -M <repo-root> tests/<name>.py`.
+- GUI suites: `<repo>/tests/run_freecad_gui.sh -M <repo-root> tests/<name>.py`.
+  **Never** use `QT_QPA_PLATFORM=offscreen <AppRun> freecad …`: the AppImage's
+  `AppRun` hard-codes `export QT_QPA_PLATFORM=xcb`, so a real window opens and
+  the process keeps running, blocking the terminal for later commands.
+- GUI scripts must close `Gui.getMainWindow()` and `sys.exit()`, and should use
+  `print(..., flush=True)`; wrap runs in `timeout`.
 - Syntax-check with `python3 -m py_compile` (no FreeCAD needed).
-- Full tests are dependency-free scripts run inside FreeCAD's interpreter.
-  Extract the AppImage once, then:
-  `<freecadcmd> -M <repo-root> tests/test_sheet.py`
-  (use `freecadcmd`, not the bare AppImage `python`, so `FreeCAD` is importable).
+- `freecadcmd`, not the AppImage's bare `python`, so `FreeCAD` is importable.
+
+## FreeCAD behaviour questions
+- Answer them from the **local source checkout** (path in `project.ai`) instead
+  of the web, and read the tag matching the build under test (`git -C <src> show
+  1.1.3:src/...`). `docs/development.md` lists which files answer which question
+  (containers, drag & drop, view providers, spreadsheet cells).

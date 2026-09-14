@@ -55,6 +55,8 @@ The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 
 - [Usage guide](docs/usage.md) — how to use the workbench (scripting workflow)
 - [API reference](docs/api.md) — `Table`, `MasterSheet`, `ConfigRef`, `Sheet`
+- [Development environment](docs/development.md) — running FreeCAD and the tests
+  (headless GUI runs, VS Code tasks, where to find FreeCAD's behaviour)
 - [Publishing](docs/publishing.md) — release + Addon Index submission
 - [Changelog](CHANGELOG.md)
 
@@ -87,7 +89,9 @@ window instead of running headless. Point it at another FreeCAD build with
 `FCSP_QPA_PLATFORM=<platform>` when you actually want to watch the run.
 
 In VS Code the tasks **FreeCAD: Run all tests** (headless), **FreeCAD: Test GUI**
-and **FreeCAD: Test container (GUI)** wrap the same commands.
+and **FreeCAD: Test container (GUI)** wrap the same commands. See
+[Development environment](docs/development.md) for the details, including how to
+look up FreeCAD's own behaviour in a local source checkout.
 
 ### Scripting API
 
