@@ -5,7 +5,7 @@ requirements of the FreeCAD Addon Index.
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_metadata.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_metadata.py
 """
 
 import sys
@@ -31,7 +31,7 @@ def _field(item, name):
 
 def test_required_fields_present():
     md = _metadata()
-    assert md.Name == "FCSpreadSheetPlus"
+    assert md.Name == "SpreadSheetPlus"
     assert md.Version, "version is required"
     assert md.Date, "date is required"
     assert md.Description, "description is required"
@@ -65,8 +65,8 @@ def test_workbench_content_matches_code():
     wb = workbenches[0]
     classname = _field(wb, "Classname")
     subdirectory = _field(wb, "Subdirectory")
-    assert classname == "FCSpreadSheetPlusWorkbench"
-    assert subdirectory == "freecad/fcspreadsheetplus"
+    assert classname == "SpreadSheetPlusWorkbench"
+    assert subdirectory == "freecad/spreadsheetplus"
     assert (ROOT / subdirectory).is_dir(), "subdirectory does not exist"
 
     # The declared classname must match the class defined in workbench.py.

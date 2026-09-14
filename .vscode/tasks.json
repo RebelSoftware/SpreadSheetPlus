@@ -76,7 +76,7 @@
     {
       "label": "Syntax check",
       "type": "shell",
-      "command": "python3 -m py_compile ${workspaceFolder}/freecad/fcspreadsheetplus/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/commands/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/dialogs/*.py ${workspaceFolder}/freecad/fcspreadsheetplus/resources/*.py ${workspaceFolder}/tests/*.py",
+      "command": "python3 -m py_compile ${workspaceFolder}/freecad/spreadsheetplus/*.py ${workspaceFolder}/freecad/spreadsheetplus/commands/*.py ${workspaceFolder}/freecad/spreadsheetplus/dialogs/*.py ${workspaceFolder}/freecad/spreadsheetplus/resources/*.py ${workspaceFolder}/tests/*.py",
       "problemMatcher": []
     }
   ]

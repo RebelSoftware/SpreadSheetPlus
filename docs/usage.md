@@ -1,17 +1,17 @@
-# Using FCSpreadSheetPlus
+# Using SpreadSheetPlus
 
-FCSpreadSheetPlus stores a single **configuration table** in a spreadsheet and lets
+SpreadSheetPlus stores a single **configuration table** in a spreadsheet and lets
 many parts share it. Each part links to the spreadsheet and selects one row (a
 "configuration") by name — so a parameter change is made once, at the master.
 
 > The GUI commands are available once the workbench is loaded (Phase 3). You can
 > also script everything from the FreeCAD Python console or a macro. The addon
 > must be installed/symlinked into `Mod/` or launched with `-M <repo>` so
-> `freecad.fcspreadsheetplus` is importable.
+> `freecad.spreadsheetplus` is importable.
 
 ## Using the GUI
 
-After loading the workbench, a **FC SpreadSheet Plus** toolbar and menu appear:
+After loading the workbench, a **SpreadSheet Plus** toolbar and menu appear:
 
 | Command | What it does |
 | :--- | :--- |
@@ -52,8 +52,8 @@ One spreadsheet = one configuration table. The layout is fixed:
 
 ```python
 import FreeCAD as App
-from freecad.fcspreadsheetplus.master_sheet import MasterSheet
-from freecad.fcspreadsheetplus.config_ref import create as create_config_ref
+from freecad.spreadsheetplus.master_sheet import MasterSheet
+from freecad.spreadsheetplus.config_ref import create as create_config_ref
 
 doc = App.newDocument("Project")
 
@@ -121,8 +121,8 @@ lib.saveAs("/path/to/library.FCStd")
 
 ```python
 # project.FCStd
-from freecad.fcspreadsheetplus.config_ref import create as create_config_ref
-from freecad.fcspreadsheetplus.config_ref import link_master_by_path
+from freecad.spreadsheetplus.config_ref import create as create_config_ref
+from freecad.spreadsheetplus.config_ref import link_master_by_path
 
 proj = App.newDocument("Project")
 proj.saveAs("/path/to/project.FCStd")   # must be saved BEFORE linking

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **FCSpreadSheetPlus** are recorded here. Dates are
+All notable changes to **SpreadSheetPlus** are recorded here. Dates are
 ISO 8601 (`YYYY-MM-DD`).
 
 ## [0.1.0] — 2026-09-13

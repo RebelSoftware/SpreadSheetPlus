@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Translation helpers for FCSpreadSheetPlus.
+"""Translation helpers for SpreadSheetPlus.
 
-Every user-facing string is wrapped in ``translate("FCSpreadSheetPlus", ...)``.
+Every user-facing string is wrapped in ``translate("SpreadSheetPlus", ...)``.
 At runtime Qt looks the text up in any installed translator; the compiled
 ``.qm`` files live in ``resources/translations/`` and are registered by
 ``Resources.gui_register_translations()`` (see ``docs/translations.md``).

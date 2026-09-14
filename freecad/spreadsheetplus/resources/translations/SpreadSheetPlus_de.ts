@@ -2,10 +2,10 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE" sourcelanguage="en">
 <context>
-    <name>FCSpreadSheetPlus</name>
+    <name>SpreadSheetPlus</name>
     <message>
-        <source>FC SpreadSheet Plus</source>
-        <translation>FC SpreadSheet Plus</translation>
+        <source>SpreadSheet Plus</source>
+        <translation>SpreadSheet Plus</translation>
     </message>
     <message>
         <source>A spreadsheet workbench similar to the default one</source>

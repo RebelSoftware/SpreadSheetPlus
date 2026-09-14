@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_table.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_table.py
 """
 
 import sys
@@ -10,7 +10,7 @@ import traceback
 
 import FreeCAD
 
-from freecad.fcspreadsheetplus.table import Table
+from freecad.spreadsheetplus.table import Table
 from fcsp_test_support import save_document
 
 
@@ -132,7 +132,7 @@ def test_set_value_recomputes():
 
 
 def test_snapshot_is_cached():
-    from freecad.fcspreadsheetplus.table import _parse_snapshot
+    from freecad.spreadsheetplus.table import _parse_snapshot
 
     doc = FreeCAD.newDocument("TableTest5")
     try:

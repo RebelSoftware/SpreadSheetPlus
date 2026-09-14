@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""ViewProviders for FCSpreadSheetPlus objects."""
+"""ViewProviders for SpreadSheetPlus objects."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ class ConfigRefViewProvider:
         vobj.Proxy = self
 
     def getIcon(self) -> str:
-        return Resources.icon("fcspreadsheetplus-config.svg")
+        return Resources.icon("spreadsheetplus-config.svg")
 
     def attach(self, vobj) -> None:
         self.Object = vobj.Object

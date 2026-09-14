@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""FCSpreadSheetPlus workbench definition."""
+"""SpreadSheetPlus workbench definition."""
 
 from __future__ import annotations
 
@@ -17,18 +17,18 @@ from .commands import (
 )
 
 
-class FCSpreadSheetPlusWorkbench(Gui.Workbench):
+class SpreadSheetPlusWorkbench(Gui.Workbench):
     """A spreadsheet workbench similar to FreeCAD's default Spreadsheet workbench."""
 
-    MenuText: str = translate("FCSpreadSheetPlus", "FC SpreadSheet Plus")
+    MenuText: str = translate("SpreadSheetPlus", "SpreadSheet Plus")
     ToolTip: str = translate(
-        "FCSpreadSheetPlus",
+        "SpreadSheetPlus",
         "A spreadsheet workbench similar to the default one",
     )
-    Icon: str = Resources.icon("fcspreadsheetplus-wb.svg")
+    Icon: str = Resources.icon("spreadsheetplus-wb.svg")
 
     def Initialize(self) -> None:
-        App.Console.PrintMessage("FCSpreadSheetPlus workbench initialized\n")
+        App.Console.PrintMessage("SpreadSheetPlus workbench initialized\n")
         commands = [
             CreateMasterSheet.Name,
             CreateConfigRef.Name,
@@ -36,8 +36,8 @@ class FCSpreadSheetPlusWorkbench(Gui.Workbench):
             SwitchConfiguration.Name,
             CreateSheet.Name,
         ]
-        self.appendToolbar(translate("FCSpreadSheetPlus", "FC SpreadSheet Plus"), commands)
-        self.appendMenu(translate("FCSpreadSheetPlus", "FC SpreadSheet Plus"), commands)
+        self.appendToolbar(translate("SpreadSheetPlus", "SpreadSheet Plus"), commands)
+        self.appendMenu(translate("SpreadSheetPlus", "SpreadSheet Plus"), commands)
 
     def Activated(self) -> None:
         pass

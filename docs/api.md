@@ -1,6 +1,6 @@
 # API reference
 
-## `freecad.fcspreadsheetplus.table`
+## `freecad.spreadsheetplus.table`
 
 One spreadsheet = one configuration table. All cell access uses the fixed layout
 described in [usage.md](usage.md).
@@ -56,7 +56,7 @@ same object (shared across ConfigRefs and recomputes).
 - `resolve_config(name)` → `str | None` — canonical stored-case name for `name`
   (case-insensitive), or `None` if there is no such row.
 
-## `freecad.fcspreadsheetplus.master_sheet`
+## `freecad.spreadsheetplus.master_sheet`
 
 ### `class MasterSheet(sheet)`
 
@@ -71,7 +71,7 @@ Delegates to `table`: `title`, `set_title`, `parameters`, `configurations`,
 `get_value`, `set_value`, `get_row`, `add_configuration`, `remove_configuration`,
 `add_parameter`, `remove_parameter`, `validate`.
 
-## `freecad.fcspreadsheetplus.config_ref`
+## `freecad.spreadsheetplus.config_ref`
 
 ### `create(doc, master, configuration, name="ConfigRef")` → object
 
@@ -98,7 +98,7 @@ Object properties:
   (visible in the property editor) reporting whether the selected
   configuration resolves.
 
-## `freecad.fcspreadsheetplus.sheet`
+## `freecad.spreadsheetplus.sheet`
 
 ### `class Sheet(obj)`
 
@@ -108,7 +108,7 @@ Low-level wrapper around a `Spreadsheet::Sheet` (used internally by `Table`).
 - `set(address, value)`, `get(address)`, `get_contents()`, `clear(address)`, `clear_all()`
 - `set_alias(address, alias)`, `get_alias(address)`, `get_cell_from_alias(alias)`
 
-## `freecad.fcspreadsheetplus.view_providers`
+## `freecad.spreadsheetplus.view_providers`
 
 ### `class ConfigRefViewProvider`
 
@@ -116,7 +116,7 @@ View provider for `ConfigRef` objects. Sets the tree icon (config icon) and
 supports serialization (`__getstate__`/`__setstate__`). Attached automatically
 by `config_ref.create()` when the GUI is up.
 
-## `freecad.fcspreadsheetplus.dialogs.table_editor`
+## `freecad.spreadsheetplus.dialogs.table_editor`
 
 ### `class TableEditorDialog(master)`
 
@@ -125,7 +125,7 @@ Parameters are columns, configurations are rows. Buttons add/remove rows and
 columns; **OK** writes the grid back to the sheet. A status line shows
 `Table.validate()` results (`Table OK`, or the list of problems).
 
-## `freecad.fcspreadsheetplus.dialogs.select_configuration`
+## `freecad.spreadsheetplus.dialogs.select_configuration`
 
 ### `class SelectConfigurationDialog(configurations, current="", parent=None)`
 
@@ -133,14 +133,14 @@ Qt dialog that picks a configuration row from a **sorted** list with a
 case-insensitive **type-to-search** filter. `selected()` returns the chosen
 name (or `None`). Used by the Switch Configuration command.
 
-## `freecad.fcspreadsheetplus.commands`
+## `freecad.spreadsheetplus.commands`
 
 Workbench commands (installed by `init_gui.py`):
 
 | Class | Command name |
 | :--- | :--- |
-| `CreateSheet` | `FCSpreadSheetPlus_CreateSheet` |
-| `CreateMasterSheet` | `FCSpreadSheetPlus_CreateMasterSheet` |
-| `CreateConfigRef` | `FCSpreadSheetPlus_CreateConfigRef` |
-| `EditConfigTable` | `FCSpreadSheetPlus_EditConfigTable` |
-| `SwitchConfiguration` | `FCSpreadSheetPlus_SwitchConfiguration` |
+| `CreateSheet` | `SpreadSheetPlus_CreateSheet` |
+| `CreateMasterSheet` | `SpreadSheetPlus_CreateMasterSheet` |
+| `CreateConfigRef` | `SpreadSheetPlus_CreateConfigRef` |
+| `EditConfigTable` | `SpreadSheetPlus_EditConfigTable` |
+| `SwitchConfiguration` | `SpreadSheetPlus_SwitchConfiguration` |

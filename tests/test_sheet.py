@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_sheet.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_sheet.py
 """
 
 import sys
@@ -10,12 +10,12 @@ import traceback
 
 import FreeCAD
 
-from freecad.fcspreadsheetplus.sheet import Sheet
+from freecad.spreadsheetplus.sheet import Sheet
 from fcsp_test_support import save_document
 
 
 def test_create_and_cells():
-    doc = FreeCAD.newDocument("FCSpreadSheetPlusTest")
+    doc = FreeCAD.newDocument("SpreadSheetPlusTest")
     try:
         sheet = Sheet.create(doc=doc, name="S1")
         assert sheet.obj.TypeId == "Spreadsheet::Sheet"
@@ -28,11 +28,11 @@ def test_create_and_cells():
         assert sheet.get_contents() == {}
     finally:
         save_document(doc, "sheet_create_and_cells")
-        FreeCAD.closeDocument("FCSpreadSheetPlusTest")
+        FreeCAD.closeDocument("SpreadSheetPlusTest")
 
 
 def test_aliases():
-    doc = FreeCAD.newDocument("FCSpreadSheetPlusTest")
+    doc = FreeCAD.newDocument("SpreadSheetPlusTest")
     try:
         sheet = Sheet.create(doc=doc, name="S1")
         sheet.set("B2", "7")
@@ -41,7 +41,7 @@ def test_aliases():
         assert sheet.get_cell_from_alias("seven") == "B2"
     finally:
         save_document(doc, "sheet_aliases")
-        FreeCAD.closeDocument("FCSpreadSheetPlusTest")
+        FreeCAD.closeDocument("SpreadSheetPlusTest")
 
 
 def main():

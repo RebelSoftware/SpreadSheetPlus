@@ -13,14 +13,14 @@ from ..resources import Resources
 
 
 class EditConfigTable:
-    Name: ClassVar[str] = "FCSpreadSheetPlus_EditConfigTable"
+    Name: ClassVar[str] = "SpreadSheetPlus_EditConfigTable"
 
     def GetResources(self) -> dict[str, str]:
         return {
-            "Pixmap": Resources.icon("fcspreadsheetplus-master.svg"),
-            "MenuText": translate("FCSpreadSheetPlus", "Edit configuration table"),
+            "Pixmap": Resources.icon("spreadsheetplus-master.svg"),
+            "MenuText": translate("SpreadSheetPlus", "Edit configuration table"),
             "ToolTip": translate(
-                "FCSpreadSheetPlus",
+                "SpreadSheetPlus",
                 "Edit the selected spreadsheet's configuration table",
             ),
         }
@@ -36,7 +36,7 @@ class EditConfigTable:
                 break
         if master is None:
             App.Console.PrintWarning(
-                "FCSpreadSheetPlus: select a MasterSheet spreadsheet first\n"
+                "SpreadSheetPlus: select a MasterSheet spreadsheet first\n"
             )
             return
 

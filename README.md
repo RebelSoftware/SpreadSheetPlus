@@ -1,4 +1,4 @@
-# FCSpreadSheetPlus
+# SpreadSheetPlus
 
 A FreeCAD spreadsheet workbench (Python addon) similar to FreeCAD's default
 Spreadsheet workbench. It reuses FreeCAD's built-in `Spreadsheet::Sheet`
@@ -10,43 +10,43 @@ objects through a thin wrapper and adds its own toolbar/menu commands.
 
 ## Install
 
-**Addon Manager** — search for *FCSpreadSheetPlus* in `Tools → Addon manager`
+**Addon Manager** — search for *SpreadSheetPlus* in `Tools → Addon manager`
 (available once the addon is listed in the FreeCAD Addon Index — see
 [docs/publishing.md](docs/publishing.md)).
 
 **Manual** — copy (or symlink) this directory into your user `Mod` folder:
 
 ```bash
-ln -s ~/projects/FCSpreadSheetPlus ~/.local/share/FreeCAD/Mod/FCSpreadSheetPlus
+ln -s ~/projects/SpreadSheetPlus ~/.local/share/FreeCAD/Mod/SpreadSheetPlus
 ```
 
-Then restart FreeCAD and select **FC SpreadSheet Plus** from the workbench
+Then restart FreeCAD and select **SpreadSheet Plus** from the workbench
 selector.
 
 To try it without installing, launch FreeCAD with an extra module path:
 
 ```bash
-~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/FCSpreadSheetPlus
+~/Applications/FreeCAD_1.1.3-Linux-x86_64-py311.AppImage -M ~/projects/SpreadSheetPlus
 ```
 
 ## Development
 
-The importable package is `freecad.fcspreadsheetplus` (module `fcspreadsheetplus`).
+The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 
 | File | Purpose |
 | :--- | :--- |
-| `freecad/fcspreadsheetplus/__init__.py` | headless entry (exports `__version__`) |
-| `freecad/fcspreadsheetplus/init_gui.py` | GUI entry: registers icons/translations/commands/workbench |
-| `freecad/fcspreadsheetplus/workbench.py` | `FCSpreadSheetPlusWorkbench` |
-| `freecad/fcspreadsheetplus/commands/` | toolbar/menu command classes |
-| `freecad/fcspreadsheetplus/sheet.py` | `Sheet` wrapper around `Spreadsheet::Sheet` |
-| `freecad/fcspreadsheetplus/table.py` | configuration table model |
-| `freecad/fcspreadsheetplus/master_sheet.py` | `MasterSheet` wrapper |
-| `freecad/fcspreadsheetplus/config_ref.py` | `ConfigRef` row-selection link |
-| `freecad/fcspreadsheetplus/dialogs/` | Qt dialogs (table editor, configuration picker) |
-| `freecad/fcspreadsheetplus/view_providers.py` | `ConfigRefViewProvider` |
-| `freecad/fcspreadsheetplus/i18n.py` | `translate()` helper |
-| `freecad/fcspreadsheetplus/resources/` | icons and translations |
+| `freecad/spreadsheetplus/__init__.py` | headless entry (exports `__version__`) |
+| `freecad/spreadsheetplus/init_gui.py` | GUI entry: registers icons/translations/commands/workbench |
+| `freecad/spreadsheetplus/workbench.py` | `SpreadSheetPlusWorkbench` |
+| `freecad/spreadsheetplus/commands/` | toolbar/menu command classes |
+| `freecad/spreadsheetplus/sheet.py` | `Sheet` wrapper around `Spreadsheet::Sheet` |
+| `freecad/spreadsheetplus/table.py` | configuration table model |
+| `freecad/spreadsheetplus/master_sheet.py` | `MasterSheet` wrapper |
+| `freecad/spreadsheetplus/config_ref.py` | `ConfigRef` row-selection link |
+| `freecad/spreadsheetplus/dialogs/` | Qt dialogs (table editor, configuration picker) |
+| `freecad/spreadsheetplus/view_providers.py` | `ConfigRefViewProvider` |
+| `freecad/spreadsheetplus/i18n.py` | `translate()` helper |
+| `freecad/spreadsheetplus/resources/` | icons and translations |
 
 ## Documentation
 
@@ -63,8 +63,8 @@ Extract the AppImage once, then:
 ```bash
 cd ~/Applications
 ./FreeCAD_1.1.3-Linux-x86_64-py311.AppImage --appimage-extract
-cd ~/projects/FCSpreadSheetPlus
-~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_sheet.py
+cd ~/projects/SpreadSheetPlus
+~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_sheet.py
 ```
 
 Note: use `freecadcmd` (not the bare `python` from the AppImage) so that the
@@ -73,7 +73,7 @@ Note: use `freecadcmd` (not the bare `python` from the AppImage) so that the
 ### Scripting API
 
 ```python
-from freecad.fcspreadsheetplus.sheet import Sheet
+from freecad.spreadsheetplus.sheet import Sheet
 
 sheet = Sheet.create(name="MySheet")
 sheet.set("A1", 42)          # raw cell content

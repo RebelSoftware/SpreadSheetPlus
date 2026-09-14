@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_i18n.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_i18n.py
 """
 
 import sys
@@ -10,15 +10,15 @@ import traceback
 
 from PySide import QtCore
 
-from freecad.fcspreadsheetplus import i18n
-from freecad.fcspreadsheetplus.resources import Resources
+from freecad.spreadsheetplus import i18n
+from freecad.spreadsheetplus.resources import Resources
 
 
 def test_translation_loading():
     translations_dir = Resources.path("translations")
     translator = QtCore.QTranslator()
-    assert translator.load("FCSpreadSheetPlus_de.qm", translations_dir), (
-        f"failed to load FCSpreadSheetPlus_de.qm from {translations_dir}"
+    assert translator.load("SpreadSheetPlus_de.qm", translations_dir), (
+        f"failed to load SpreadSheetPlus_de.qm from {translations_dir}"
     )
 
     app = QtCore.QCoreApplication.instance()
@@ -28,10 +28,10 @@ def test_translation_loading():
         app = QtCore.QCoreApplication([])
     app.installTranslator(translator)
     try:
-        assert i18n.translate("FCSpreadSheetPlus", "Switch configuration") == (
+        assert i18n.translate("SpreadSheetPlus", "Switch configuration") == (
             "Konfiguration wechseln"
         )
-        assert i18n.translate("FCSpreadSheetPlus", "Create MasterSheet") == (
+        assert i18n.translate("SpreadSheetPlus", "Create MasterSheet") == (
             "MasterSheet erstellen"
         )
     finally:
@@ -40,7 +40,7 @@ def test_translation_loading():
 
 def test_untranslated_falls_back_to_source():
     # No translator installed (or the string is absent) -> source text returned.
-    assert i18n.translate("FCSpreadSheetPlus", "No such string") == "No such string"
+    assert i18n.translate("SpreadSheetPlus", "No such string") == "No such string"
 
 
 def main():

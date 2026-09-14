@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/FCSpreadSheetPlus tests/test_units.py
+    ~/Applications/squashfs-root/AppRun freecadcmd -M ~/projects/SpreadSheetPlus tests/test_units.py
 """
 
 import sys
@@ -10,8 +10,8 @@ import traceback
 
 import FreeCAD
 
-from freecad.fcspreadsheetplus.master_sheet import MasterSheet
-from freecad.fcspreadsheetplus.config_ref import create as create_config_ref
+from freecad.spreadsheetplus.master_sheet import MasterSheet
+from freecad.spreadsheetplus.config_ref import create as create_config_ref
 from fcsp_test_support import save_document
 
 

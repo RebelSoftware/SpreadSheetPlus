@@ -17,7 +17,7 @@ class SelectConfigurationDialog(QtWidgets.QDialog):
 
     def __init__(self, configurations, current: str = "", parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle(translate("FCSpreadSheetPlus", "Switch configuration"))
+        self.setWindowTitle(translate("SpreadSheetPlus", "Switch configuration"))
         self.setModal(True)
         self.resize(320, 400)
         self._names = sorted(configurations, key=str.lower)
@@ -25,7 +25,7 @@ class SelectConfigurationDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout(self)
 
         self.search = QtWidgets.QLineEdit(self)
-        self.search.setPlaceholderText(translate("FCSpreadSheetPlus", "Type to search…"))
+        self.search.setPlaceholderText(translate("SpreadSheetPlus", "Type to search…"))
         self.search.setClearButtonEnabled(True)
         layout.addWidget(self.search)
 

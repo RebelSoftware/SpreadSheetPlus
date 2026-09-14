@@ -19,7 +19,7 @@ class TableEditorDialog(QtWidgets.QDialog):
     def __init__(self, master: MasterSheet, parent=None) -> None:
         super().__init__(parent)
         self.master = master
-        self.setWindowTitle(translate("FCSpreadSheetPlus", "Edit configuration table"))
+        self.setWindowTitle(translate("SpreadSheetPlus", "Edit configuration table"))
         self.setModal(True)
         self._build_ui()
         self._reload()
@@ -36,10 +36,10 @@ class TableEditorDialog(QtWidgets.QDialog):
         layout.addWidget(self.status)
 
         row_buttons = QtWidgets.QHBoxLayout()
-        self.add_config_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Add configuration"), self)
-        self.remove_config_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Remove configuration"), self)
-        self.add_param_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Add parameter"), self)
-        self.remove_param_btn = QtWidgets.QPushButton(translate("FCSpreadSheetPlus", "Remove parameter"), self)
+        self.add_config_btn = QtWidgets.QPushButton(translate("SpreadSheetPlus", "Add configuration"), self)
+        self.remove_config_btn = QtWidgets.QPushButton(translate("SpreadSheetPlus", "Remove configuration"), self)
+        self.add_param_btn = QtWidgets.QPushButton(translate("SpreadSheetPlus", "Add parameter"), self)
+        self.remove_param_btn = QtWidgets.QPushButton(translate("SpreadSheetPlus", "Remove parameter"), self)
         for btn in (
             self.add_config_btn,
             self.remove_config_btn,
@@ -81,7 +81,7 @@ class TableEditorDialog(QtWidgets.QDialog):
             self.status.setText("\n".join(problems))
             self.status.setStyleSheet("color: #b00020; font-weight: bold;")
         else:
-            self.status.setText(translate("FCSpreadSheetPlus", "Table OK"))
+            self.status.setText(translate("SpreadSheetPlus", "Table OK"))
             self.status.setStyleSheet("color: #4caf50;")
 
     def _write_back(self) -> None:
@@ -101,8 +101,8 @@ class TableEditorDialog(QtWidgets.QDialog):
     def _add_configuration(self) -> None:
         name, ok = QtWidgets.QInputDialog.getText(
             self,
-            translate("FCSpreadSheetPlus", "Add configuration"),
-            translate("FCSpreadSheetPlus", "Configuration name:"),
+            translate("SpreadSheetPlus", "Add configuration"),
+            translate("SpreadSheetPlus", "Configuration name:"),
         )
         if ok and name.strip():
             self.master.add_configuration(name.strip())
@@ -119,8 +119,8 @@ class TableEditorDialog(QtWidgets.QDialog):
     def _add_parameter(self) -> None:
         name, ok = QtWidgets.QInputDialog.getText(
             self,
-            translate("FCSpreadSheetPlus", "Add parameter"),
-            translate("FCSpreadSheetPlus", "Parameter name:"),
+            translate("SpreadSheetPlus", "Add parameter"),
+            translate("SpreadSheetPlus", "Parameter name:"),
         )
         if ok and name.strip():
             self.master.add_parameter(name.strip())

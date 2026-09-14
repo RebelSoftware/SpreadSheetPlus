@@ -1,4 +1,4 @@
-# FCSpreadSheetPlus — Project Plan
+# SpreadSheetPlus — Project Plan
 
 ## Goal
 
@@ -83,7 +83,7 @@ Example:
 ## 4. Component / function inventory
 
 ### A. Table model (headless, pure Python)
-- `freecad/fcspreadsheetplus/table.py`
+- `freecad/spreadsheetplus/table.py`
   - `Table(sheet)` — wraps a `Spreadsheet::Sheet` as a named table.
   - `read_schema()` → `{param_name: col_index}`, `[config_names]`
   - `write_schema(param_names, config_names)` — lays out the header/name cells.
@@ -93,7 +93,7 @@ Example:
   - `validate()` — check for duplicate names, empty cells, invalid identifiers.
 
 ### B. MasterSheet object
-- `freecad/fcspreadsheetplus/master_sheet.py`
+- `freecad/spreadsheetplus/master_sheet.py`
   - `MasterSheet.create(doc)` — creates a `Spreadsheet::Sheet` (or a
     `App::FeaturePython` that owns a sheet) at the document root, initializes the
     table.
@@ -101,7 +101,7 @@ Example:
     `add_parameter`, `rename_parameter`, `set_value`, `get_value`.
 
 ### C. ConfigRef object (the decoupling link)
-- `freecad/fcspreadsheetplus/config_ref.py`
+- `freecad/spreadsheetplus/config_ref.py`
   - `ConfigRef` proxy for an `App::FeaturePython` with:
     - `Master` — `App::PropertyXLink` → MasterSheet.
     - `Configuration` — `App::PropertyEnumeration` (row names) + `App::PropertyString`
@@ -114,7 +114,7 @@ Example:
   - ViewProvider: `ConfigRefViewProvider` (icon, tree display, no shape).
 
 ### D. Expression / binding layer
-- `freecad/fcspreadsheetplus/bind.py`
+- `freecad/spreadsheetplus/bind.py`
   - `bind_to_config_ref(part, config_ref, param_map)` — set expressions on the
     part's parameters: `part.setExpression("Length", "<<ConfigRef>>.Length")`.
   - `link_parameter(obj, prop, cell)` — *(planned, then dropped)* set a hidden
@@ -123,21 +123,21 @@ Example:
   - `unbind(...)` helpers.
 
 ### E. Cross-file layer
-- `freecad/fcspreadsheetplus/external.py`
+- `freecad/spreadsheetplus/external.py`
   - `attach_external_master(config_ref, file_path)` — set the `PropertyXLink`
     to an external document's MasterSheet (via `App::Link` / `Document.open`).
   - Path handling (relative vs absolute), placeholder/dependency management.
 
 ### F. UX (GUI)
-- `freecad/fcspreadsheetplus/commands/` — commands:
+- `freecad/spreadsheetplus/commands/` — commands:
   - `CreateMasterSheet` — create a `MasterSheet` in the active document.
   - `CreateConfigRef` — turn the selected sheet into a `ConfigRef` (first row).
   - `EditConfigTable` — open the table editor dialog.
   - `SwitchConfiguration` — change the selected row from the tree/property editor.
   - `CreateSheet` — create a plain `Spreadsheet::Sheet` (parity with default workbench).
-- `freecad/fcspreadsheetplus/dialogs/table_editor.py` — `TableEditorDialog`
+- `freecad/spreadsheetplus/dialogs/table_editor.py` — `TableEditorDialog`
   (params = columns, configs = rows, add/remove buttons, write-back on OK).
-- `freecad/fcspreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon).
+- `freecad/spreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon).
 
 ## 5. Phased roadmap
 

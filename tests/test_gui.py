@@ -2,7 +2,7 @@
 
 Run inside FreeCAD's interpreter:
 
-    QT_QPA_PLATFORM=offscreen ~/Applications/squashfs-root/AppRun freecad -M ~/projects/FCSpreadSheetPlus tests/test_gui.py
+    QT_QPA_PLATFORM=offscreen ~/Applications/squashfs-root/AppRun freecad -M ~/projects/SpreadSheetPlus tests/test_gui.py
 """
 
 import sys
@@ -11,20 +11,20 @@ import traceback
 import FreeCAD
 import FreeCADGui as Gui
 
-import freecad.fcspreadsheetplus.init_gui  # noqa: F401  (registers commands + workbench)
+import freecad.spreadsheetplus.init_gui  # noqa: F401  (registers commands + workbench)
 
 
 def test_workbench_registered():
-    assert "FCSpreadSheetPlusWorkbench" in Gui.listWorkbenches()
+    assert "SpreadSheetPlusWorkbench" in Gui.listWorkbenches()
 
 
 def test_commands_installed():
     for name in (
-        "FCSpreadSheetPlus_CreateSheet",
-        "FCSpreadSheetPlus_CreateMasterSheet",
-        "FCSpreadSheetPlus_CreateConfigRef",
-        "FCSpreadSheetPlus_EditConfigTable",
-        "FCSpreadSheetPlus_SwitchConfiguration",
+        "SpreadSheetPlus_CreateSheet",
+        "SpreadSheetPlus_CreateMasterSheet",
+        "SpreadSheetPlus_CreateConfigRef",
+        "SpreadSheetPlus_EditConfigTable",
+        "SpreadSheetPlus_SwitchConfiguration",
     ):
         found = False
         try:
@@ -35,9 +35,9 @@ def test_commands_installed():
 
 
 def test_config_ref_view_provider():
-    from freecad.fcspreadsheetplus.master_sheet import MasterSheet
-    from freecad.fcspreadsheetplus.config_ref import create as create_config_ref
-    from freecad.fcspreadsheetplus.view_providers import ConfigRefViewProvider
+    from freecad.spreadsheetplus.master_sheet import MasterSheet
+    from freecad.spreadsheetplus.config_ref import create as create_config_ref
+    from freecad.spreadsheetplus.view_providers import ConfigRefViewProvider
 
     doc = FreeCAD.newDocument("GuiTest")
     try:
@@ -54,8 +54,8 @@ def test_config_ref_view_provider():
 
 
 def test_table_editor_loads_and_writes():
-    from freecad.fcspreadsheetplus.master_sheet import MasterSheet
-    from freecad.fcspreadsheetplus.dialogs.table_editor import TableEditorDialog
+    from freecad.spreadsheetplus.master_sheet import MasterSheet
+    from freecad.spreadsheetplus.dialogs.table_editor import TableEditorDialog
 
     doc = FreeCAD.newDocument("GuiTest2")
     try:
@@ -81,7 +81,7 @@ def test_table_editor_loads_and_writes():
 
 
 def test_select_configuration_dialog():
-    from freecad.fcspreadsheetplus.dialogs.select_configuration import SelectConfigurationDialog
+    from freecad.spreadsheetplus.dialogs.select_configuration import SelectConfigurationDialog
 
     dlg = SelectConfigurationDialog(["TypeB", "typeC", "TypeA"], "typeA")
     names = [dlg.list.item(i).text() for i in range(dlg.list.count())]
@@ -100,8 +100,8 @@ def test_select_configuration_dialog():
 
 
 def test_table_editor_shows_validation():
-    from freecad.fcspreadsheetplus.master_sheet import MasterSheet
-    from freecad.fcspreadsheetplus.dialogs.table_editor import TableEditorDialog
+    from freecad.spreadsheetplus.master_sheet import MasterSheet
+    from freecad.spreadsheetplus.dialogs.table_editor import TableEditorDialog
 
     doc = FreeCAD.newDocument("GuiTest3")
     try:

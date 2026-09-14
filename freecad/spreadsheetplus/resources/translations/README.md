@@ -7,14 +7,14 @@ the active FreeCAD language.
 
 ## Files
 
-- `FCSpreadSheetPlus_de.ts` — German source translation (XML, editable).
-- `FCSpreadSheetPlus_de.qm` — compiled German translation (shipped with the addon).
+- `SpreadSheetPlus_de.ts` — German source translation (XML, editable).
+- `SpreadSheetPlus_de.qm` — compiled German translation (shipped with the addon).
 
 Qt only loads the **compiled** `.qm` at runtime — edit the `.ts` and recompile.
 
 ## Adding or updating a language
 
-1. Copy `FCSpreadSheetPlus_de.ts` to `FCSpreadSheetPlus_<lang>.ts`
+1. Copy `SpreadSheetPlus_de.ts` to `SpreadSheetPlus_<lang>.ts`
    (e.g. `_fr`, `_es`; use the two-letter top-level domain FreeCAD expects).
 2. Translate the `<translation>` elements (leave `<source>` unchanged).
 3. Compile it with Qt's `lrelease` (bundled with FreeCAD at
@@ -22,13 +22,13 @@ Qt only loads the **compiled** `.qm` at runtime — edit the `.ts` and recompile
 
    ```bash
    ~/Applications/squashfs-root/usr/lib/qt6/bin/lrelease \
-       FCSpreadSheetPlus_fr.ts -qm FCSpreadSheetPlus_fr.qm
+       SpreadSheetPlus_fr.ts -qm SpreadSheetPlus_fr.qm
    ```
 
 4. Restart FreeCAD with that language selected (`Edit → Preferences → General →
    Language`) — the strings come from the `.qm` automatically.
 
-> Strings are wrapped with `translate("FCSpreadSheetPlus", "...")` in the code
-> (context `FCSpreadSheetPlus`), so the `.ts` context name must stay
-> `FCSpreadSheetPlus`. See also FreeCAD's "Translating an external workbench"
+> Strings are wrapped with `translate("SpreadSheetPlus", "...")` in the code
+> (context `SpreadSheetPlus`), so the `.ts` context name must stay
+> `SpreadSheetPlus`. See also FreeCAD's "Translating an external workbench"
 > guide: https://wiki.freecad.org/Translating_an_external_workbench

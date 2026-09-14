@@ -1,4 +1,4 @@
-"""Shared helpers for FCSpreadSheetPlus test scripts.
+"""Shared helpers for SpreadSheetPlus test scripts.
 
 Tests save their FreeCAD documents into the git-ignored ``test_documents/``
 folder so the results can be opened and reviewed visually after a run.

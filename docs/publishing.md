@@ -1,6 +1,6 @@
 # Publishing to the FreeCAD Addon Index
 
-FCSpreadSheetPlus is distributed through FreeCAD's built-in **Addon Manager**,
+SpreadSheetPlus is distributed through FreeCAD's built-in **Addon Manager**,
 which reads the `package.xml` manifest from this repository and an index
 maintained by the FreeCAD project.
 
@@ -17,7 +17,7 @@ The manifest at the repository root must stay accurate:
 - `<url type="readme">`, `<url type="documentation">`, `<url type="bugtracker">`,
   `<icon>`, `<tag>`.
 - `<content><workbench>` with a `<classname>` matching the workbench class in
-  `freecad/fcspreadsheetplus/workbench.py` and the `<subdirectory>` holding the
+  `freecad/spreadsheetplus/workbench.py` and the `<subdirectory>` holding the
   package.
 
 `tests/test_metadata.py` validates all of this with FreeCAD's own metadata

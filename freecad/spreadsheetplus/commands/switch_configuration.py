@@ -13,14 +13,14 @@ from ..resources import Resources
 
 
 class SwitchConfiguration:
-    Name: ClassVar[str] = "FCSpreadSheetPlus_SwitchConfiguration"
+    Name: ClassVar[str] = "SpreadSheetPlus_SwitchConfiguration"
 
     def GetResources(self) -> dict[str, str]:
         return {
-            "Pixmap": Resources.icon("fcspreadsheetplus-config.svg"),
-            "MenuText": translate("FCSpreadSheetPlus", "Switch configuration"),
+            "Pixmap": Resources.icon("spreadsheetplus-config.svg"),
+            "MenuText": translate("SpreadSheetPlus", "Switch configuration"),
             "ToolTip": translate(
-                "FCSpreadSheetPlus",
+                "SpreadSheetPlus",
                 "Change the selected ConfigRef's configuration row",
             ),
         }
@@ -28,7 +28,7 @@ class SwitchConfiguration:
     def Activated(self) -> None:
         doc = App.ActiveDocument
         if doc is None:
-            App.Console.PrintWarning("FCSpreadSheetPlus: no active document\n")
+            App.Console.PrintWarning("SpreadSheetPlus: no active document\n")
             return
 
         from ..config_ref import ConfigRef
@@ -40,11 +40,11 @@ class SwitchConfiguration:
                 ref = obj
                 break
         if ref is None:
-            App.Console.PrintWarning("FCSpreadSheetPlus: select a ConfigRef first\n")
+            App.Console.PrintWarning("SpreadSheetPlus: select a ConfigRef first\n")
             return
         if ref.Master is None:
             App.Console.PrintWarning(
-                "FCSpreadSheetPlus: the ConfigRef has no linked MasterSheet\n"
+                "SpreadSheetPlus: the ConfigRef has no linked MasterSheet\n"
             )
             return
 

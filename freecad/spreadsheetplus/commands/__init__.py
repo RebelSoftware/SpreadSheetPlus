@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""FCSpreadSheetPlus commands."""
+"""SpreadSheetPlus commands."""
 
 from .create_sheet import CreateSheet as CreateSheet
 from .create_master_sheet import CreateMasterSheet as CreateMasterSheet

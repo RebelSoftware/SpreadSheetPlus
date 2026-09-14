@@ -12,14 +12,14 @@ from ..resources import Resources
 
 
 class CreateMasterSheet:
-    Name: ClassVar[str] = "FCSpreadSheetPlus_CreateMasterSheet"
+    Name: ClassVar[str] = "SpreadSheetPlus_CreateMasterSheet"
 
     def GetResources(self) -> dict[str, str]:
         return {
-            "Pixmap": Resources.icon("fcspreadsheetplus-master.svg"),
-            "MenuText": translate("FCSpreadSheetPlus", "Create MasterSheet"),
+            "Pixmap": Resources.icon("spreadsheetplus-master.svg"),
+            "MenuText": translate("SpreadSheetPlus", "Create MasterSheet"),
             "ToolTip": translate(
-                "FCSpreadSheetPlus",
+                "SpreadSheetPlus",
                 "Create a document-level configuration table",
             ),
         }
@@ -27,7 +27,7 @@ class CreateMasterSheet:
     def Activated(self) -> None:
         doc = App.ActiveDocument
         if doc is None:
-            App.Console.PrintWarning("FCSpreadSheetPlus: no active document\n")
+            App.Console.PrintWarning("SpreadSheetPlus: no active document\n")
             return
         from ..master_sheet import MasterSheet
 

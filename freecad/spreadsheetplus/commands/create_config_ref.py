@@ -13,14 +13,14 @@ from ..resources import Resources
 
 
 class CreateConfigRef:
-    Name: ClassVar[str] = "FCSpreadSheetPlus_CreateConfigRef"
+    Name: ClassVar[str] = "SpreadSheetPlus_CreateConfigRef"
 
     def GetResources(self) -> dict[str, str]:
         return {
-            "Pixmap": Resources.icon("fcspreadsheetplus-config.svg"),
-            "MenuText": translate("FCSpreadSheetPlus", "Attach configuration"),
+            "Pixmap": Resources.icon("spreadsheetplus-config.svg"),
+            "MenuText": translate("SpreadSheetPlus", "Attach configuration"),
             "ToolTip": translate(
-                "FCSpreadSheetPlus",
+                "SpreadSheetPlus",
                 "Link a ConfigRef to the selected spreadsheet",
             ),
         }
@@ -28,7 +28,7 @@ class CreateConfigRef:
     def Activated(self) -> None:
         doc = App.ActiveDocument
         if doc is None:
-            App.Console.PrintWarning("FCSpreadSheetPlus: no active document\n")
+            App.Console.PrintWarning("SpreadSheetPlus: no active document\n")
             return
 
         from ..master_sheet import MasterSheet
@@ -41,14 +41,14 @@ class CreateConfigRef:
                 break
         if master is None:
             App.Console.PrintWarning(
-                "FCSpreadSheetPlus: select a MasterSheet spreadsheet first\n"
+                "SpreadSheetPlus: select a MasterSheet spreadsheet first\n"
             )
             return
 
         configs = MasterSheet(master).configurations()
         if not configs:
             App.Console.PrintWarning(
-                "FCSpreadSheetPlus: the spreadsheet has no configurations\n"
+                "SpreadSheetPlus: the spreadsheet has no configurations\n"
             )
             return
 
