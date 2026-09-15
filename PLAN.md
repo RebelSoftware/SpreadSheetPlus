@@ -132,12 +132,14 @@ Example:
 - `freecad/spreadsheetplus/commands/` — commands:
   - `CreateMasterSheet` — create a `MasterSheet` in the active document.
   - `CreateConfigRef` — turn the selected sheet into a `ConfigRef` (first row).
-  - `EditConfigTable` — open the table editor dialog.
   - `SwitchConfiguration` — change the selected row from the tree/property editor.
-  - `CreateSheet` — create a plain `Spreadsheet::Sheet` (parity with default workbench).
-- `freecad/spreadsheetplus/dialogs/table_editor.py` — `TableEditorDialog`
-  (params = columns, configs = rows, add/remove buttons, write-back on OK).
+- `freecad/spreadsheetplus/dialogs/select_configuration.py` —
+  `SelectConfigurationDialog` (sorted, searchable row picker).
 - `freecad/spreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon).
+
+> `CreateSheet` and `EditConfigTable`/`TableEditorDialog` were dropped: creating
+> a plain `Spreadsheet::Sheet` duplicates `CreateMasterSheet`, and users edit the
+> sheet directly in FreeCAD's spreadsheet editor.
 
 ## 5. Phased roadmap
 

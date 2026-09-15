@@ -154,15 +154,6 @@ View provider for `ConfigRef` objects. Sets the tree icon (config icon) and
 supports serialization (`__getstate__`/`__setstate__`). Attached automatically
 by `config_ref.create()` when the GUI is up.
 
-## `freecad.spreadsheetplus.dialogs.table_editor`
-
-### `class TableEditorDialog(master)`
-
-Qt dialog (a `QTableWidget`) that edits a `MasterSheet`'s configuration table.
-Parameters are columns, configurations are rows. Buttons add/remove rows and
-columns; **OK** writes the grid back to the sheet. A status line shows
-`Table.validate()` results (`Table OK`, or the list of problems).
-
 ## `freecad.spreadsheetplus.dialogs.select_configuration`
 
 ### `class SelectConfigurationDialog(configurations, current="", parent=None)`
@@ -177,10 +168,8 @@ Workbench commands (installed by `init_gui.py`):
 
 | Class | Command name |
 | :--- | :--- |
-| `CreateSheet` | `SpreadSheetPlus_CreateSheet` |
 | `CreateMasterSheet` | `SpreadSheetPlus_CreateMasterSheet` |
 | `CreateConfigRef` | `SpreadSheetPlus_CreateConfigRef` |
-| `EditConfigTable` | `SpreadSheetPlus_EditConfigTable` |
 | `SwitchConfiguration` | `SpreadSheetPlus_SwitchConfiguration` |
 
 ### `freecad.spreadsheetplus.commands.create_config_ref`

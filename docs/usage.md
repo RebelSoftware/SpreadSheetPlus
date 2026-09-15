@@ -17,14 +17,12 @@ After loading the workbench, a **SpreadSheet Plus** toolbar and menu appear:
 | :--- | :--- |
 | Create Master Sheet | Create a new `MasterSheet` in the active document. |
 | Create ConfigRef | Turn the selected `Spreadsheet::Sheet` into a `ConfigRef` (selects the first configuration). |
-| Edit Configuration Table | Open the table editor for the selected sheet. |
 | Switch Configuration | Switch the selected `ConfigRef` to another configuration row. |
-| Create Sheet | Create a plain `Spreadsheet::Sheet` (same as the default workbench). |
 
-The table editor shows parameters as columns and configurations as rows, with
-buttons to add/remove rows and columns. Changes are written back to the sheet
-when you press **OK**. A status line at the bottom reports validation problems
-(duplicate names, invalid parameter names) as you edit.
+The `MasterSheet` is a plain `Spreadsheet::Sheet`, so you edit the table itself
+in FreeCAD's normal spreadsheet editor. `MasterSheet.validate()` reports table
+problems (duplicate names, invalid parameter names) if you want to check one
+programmatically.
 
 **Create ConfigRef** follows FreeCAD's container convention: if a Part container
 or a PartDesign Body is *active* (double-click it in the tree so its label is

@@ -20,10 +20,8 @@ def test_workbench_registered():
 
 def test_commands_installed():
     for name in (
-        "SpreadSheetPlus_CreateSheet",
         "SpreadSheetPlus_CreateMasterSheet",
         "SpreadSheetPlus_CreateConfigRef",
-        "SpreadSheetPlus_EditConfigTable",
         "SpreadSheetPlus_SwitchConfiguration",
     ):
         found = False
@@ -53,33 +51,6 @@ def test_config_ref_view_provider():
         FreeCAD.closeDocument("GuiTest")
 
 
-def test_table_editor_loads_and_writes():
-    from freecad.spreadsheetplus.master_sheet import MasterSheet
-    from freecad.spreadsheetplus.dialogs.table_editor import TableEditorDialog
-
-    doc = FreeCAD.newDocument("GuiTest2")
-    try:
-        master = MasterSheet.create(doc, name="MasterSheet")
-        for param in ("Length", "Width"):
-            master.add_parameter(param)
-        for config in ("TypeA", "TypeB"):
-            master.add_configuration(config)
-        master.set_value("TypeA", "Length", 80)
-        master.set_value("TypeB", "Length", 85)
-
-        dialog = TableEditorDialog(master)
-        assert dialog.table.rowCount() == 2
-        assert dialog.table.columnCount() == 2
-        assert dialog.table.item(0, 0).text() == "80"
-
-        dialog.table.item(0, 0).setText("123")
-        dialog._write_back()
-        assert master.get_value("TypeA", "Length") == "123"
-        dialog.close()
-    finally:
-        FreeCAD.closeDocument("GuiTest2")
-
-
 def test_select_configuration_dialog():
     from freecad.spreadsheetplus.dialogs.select_configuration import SelectConfigurationDialog
 
@@ -97,34 +68,6 @@ def test_select_configuration_dialog():
     assert visible == ["TypeB"]
     assert dlg.selected() == "TypeB"
     dlg.close()
-
-
-def test_table_editor_shows_validation():
-    from freecad.spreadsheetplus.master_sheet import MasterSheet
-    from freecad.spreadsheetplus.dialogs.table_editor import TableEditorDialog
-
-    doc = FreeCAD.newDocument("GuiTest3")
-    try:
-        master = MasterSheet.create(doc, name="MasterSheet")
-        master.add_parameter("Length")
-        master.add_configuration("TypeA")
-
-        dialog = TableEditorDialog(master)
-        assert dialog.status.text() == "Table OK"
-
-        # duplicate (case-insensitive) configuration name
-        master.sheet.set("A4", "typea")
-        dialog._reload()
-        assert "duplicate configuration names" in dialog.status.text()
-
-        # invalid parameter name
-        master.sheet.set("A4", "")
-        master.sheet.set("C2", "bad param")
-        dialog._reload()
-        assert "bad param" in dialog.status.text()
-        dialog.close()
-    finally:
-        FreeCAD.closeDocument("GuiTest3")
 
 
 def main():

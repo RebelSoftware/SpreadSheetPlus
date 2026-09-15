@@ -9,10 +9,8 @@ import FreeCADGui as Gui
 from .i18n import translate
 from .resources import Resources
 from .commands import (
-    CreateSheet,
     CreateMasterSheet,
     CreateConfigRef,
-    EditConfigTable,
     SwitchConfiguration,
 )
 
@@ -32,9 +30,7 @@ class SpreadSheetPlusWorkbench(Gui.Workbench):
         commands = [
             CreateMasterSheet.Name,
             CreateConfigRef.Name,
-            EditConfigTable.Name,
             SwitchConfiguration.Name,
-            CreateSheet.Name,
         ]
         self.appendToolbar(translate("SpreadSheetPlus", "SpreadSheet Plus"), commands)
         self.appendMenu(translate("SpreadSheetPlus", "SpreadSheet Plus"), commands)
@@ -46,7 +42,7 @@ class SpreadSheetPlusWorkbench(Gui.Workbench):
         pass
 
     def ContextMenu(self, recipient: str) -> None:
-        self.appendContextMenu("", [EditConfigTable.Name, CreateConfigRef.Name])
+        self.appendContextMenu("", [CreateConfigRef.Name])
 
     @classmethod
     def Install(cls) -> None:

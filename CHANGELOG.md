@@ -62,9 +62,9 @@ Initial release.
 - Content-addressed table snapshot cache (parses the master once per change).
 
 **UX**
-- Workbench with commands: Create MasterSheet, Create ConfigRef, Edit
-  configuration table, Switch configuration, Create spreadsheet.
-- Table editor with a validation status line.
+- Workbench with commands: Create MasterSheet, Create ConfigRef, Switch
+  configuration. (The sheet itself is edited in FreeCAD's normal spreadsheet
+  editor.)
 - Case-insensitive configuration names; sorted, searchable configuration
   picker.
 - `ConfigurationValid` / `ConfigurationError` status shown in the property

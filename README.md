@@ -46,7 +46,7 @@ The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 | `freecad/spreadsheetplus/table.py` | configuration table model |
 | `freecad/spreadsheetplus/master_sheet.py` | `MasterSheet` wrapper |
 | `freecad/spreadsheetplus/config_ref.py` | `ConfigRef` row-selection link |
-| `freecad/spreadsheetplus/dialogs/` | Qt dialogs (table editor, configuration picker) |
+| `freecad/spreadsheetplus/dialogs/` | configuration picker dialog |
 | `freecad/spreadsheetplus/view_providers.py` | `ConfigRefViewProvider` |
 | `freecad/spreadsheetplus/i18n.py` | `translate()` helper |
 | `freecad/spreadsheetplus/resources/` | icons and translations |

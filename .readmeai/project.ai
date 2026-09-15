@@ -55,8 +55,12 @@ which has the same coupling.
   type `Body::isAllowed()` accepts.
 - **Caching.** `Table.snapshot()` memoises the parsed table by raw cell content,
   so several ConfigRefs sharing one master parse it once.
-- **Validation.** The table editor shows `Table.validate()` results; a ConfigRef
-  reports `ConfigurationValid` / `ConfigurationError` in the property editor.
+- **Validation.** `MasterSheet.validate()` / `Table.validate()` report table
+  problems (duplicate names, invalid parameter names); a ConfigRef reports
+  `ConfigurationValid` / `ConfigurationError` in the property editor.
+- **The sheet is edited directly.** There is no custom table editor — the
+  `MasterSheet` is a plain `Spreadsheet::Sheet` edited in FreeCAD's own
+  spreadsheet editor.
 - **i18n.** All UI strings go through `i18n.translate("SpreadSheetPlus", …)`;
   compiled `.qm` files live in `resources/translations/`.
 
@@ -71,8 +75,8 @@ which has the same coupling.
 - `freecad/spreadsheetplus/version.py` — `__version__` (currently `0.1.0`)
 - `freecad/spreadsheetplus/init_gui.py` — GUI entry: icons, translations, commands, workbench
 - `freecad/spreadsheetplus/workbench.py` — `SpreadSheetPlusWorkbench` (Gui.Workbench)
-- `freecad/spreadsheetplus/commands/` — CreateSheet, CreateMasterSheet, CreateConfigRef, EditConfigTable, SwitchConfiguration
-- `freecad/spreadsheetplus/dialogs/` — `TableEditorDialog`, `SelectConfigurationDialog`
+- `freecad/spreadsheetplus/commands/` — CreateMasterSheet, CreateConfigRef, SwitchConfiguration
+- `freecad/spreadsheetplus/dialogs/` — `SelectConfigurationDialog` (row picker)
 - `freecad/spreadsheetplus/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
 - `freecad/spreadsheetplus/table.py` — table model + `parse_value` + `TableSnapshot` cache
 - `freecad/spreadsheetplus/master_sheet.py` — `MasterSheet` wrapper + `create()`
@@ -146,7 +150,7 @@ The detailed technical plan, table convention and decision log live in
 
 **Status:** feature-complete — Phase 0–4 plus the pre-publish container/rename
 work are done; the only remaining item is the manual FreeCAD Addon Index
-submission. Test suites are green: **27 headless** and **17 GUI** (`test_gui` 6 +
+submission. Test suites are green: **27 headless** and **15 GUI** (`test_gui` 4 +
 `test_container` 11).
 
 ### Completed
@@ -205,6 +209,10 @@ submission. Test suites are green: **27 headless** and **17 GUI** (`test_gui` 6 
   `tests/test_container.py` (GUI, 11 tests). Also added
   `tests/run_freecad_gui.sh` (see gotchas) and corrected the docs'
   expression examples.
+- Trimmed redundant commands: removed `CreateSheet` (duplicates
+  `CreateMasterSheet`) and `EditConfigTable` + `TableEditorDialog` (edit the
+  sheet directly in FreeCAD's spreadsheet editor). Toolbar/menu/context menu now
+  offer CreateMasterSheet, CreateConfigRef, SwitchConfiguration.
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons

@@ -15,10 +15,8 @@ Keep this file fast - it runs on every FreeCAD GUI startup.
 
 from .resources import Resources
 from .commands import (
-    CreateSheet,
     CreateMasterSheet,
     CreateConfigRef,
-    EditConfigTable,
     SwitchConfiguration,
 )
 from .workbench import SpreadSheetPlusWorkbench
@@ -31,10 +29,8 @@ Resources.gui_register_translations()
 
 # Install commands
 for command in (
-    CreateSheet,
     CreateMasterSheet,
     CreateConfigRef,
-    EditConfigTable,
     SwitchConfiguration,
 ):
     command.Install()
