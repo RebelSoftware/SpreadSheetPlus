@@ -1,32 +1,87 @@
 # SpreadSheetPlus — Project file
 
-## Description
-A FreeCAD spreadsheet workbench (Python addon) similar to the default
-FreeCAD Spreadsheet workbench. It reuses FreeCAD's built-in
-`Spreadsheet::Sheet` objects through a thin Python wrapper and exposes a
-custom workbench with toolbar/menu commands.
+> A FreeCAD spreadsheet workbench that **decouples the spreadsheet from the
+> parts it drives**. One `MasterSheet` per project holds a configuration table;
+> many parts link to it through a lightweight `ConfigRef` and share a named row.
+> A parameter change is made once, at the master — and copying a part no longer
+> copies the spreadsheet.
+
+## The problem it solves
+FreeCAD's built-in Spreadsheet workbench keeps a `Spreadsheet::Sheet` *inside*
+the part it drives, so copying a part (or making a link with "copy on change")
+copies the sheet too, and the same parameter must be edited in N places. The
+built-in "configuration table" binds cells to a part with hidden references,
+which has the same coupling.
+
+## How it works
+- **MasterSheet** — a document-level `Spreadsheet::Sheet` holding **one**
+  configuration table (fixed layout below). Created once per project and
+  shareable across files.
+- **ConfigRef** — a small `App::FeaturePython` created per part. It links to a
+  MasterSheet (same document, or another file via `App::PropertyXLink`) and
+  selects one **configuration** (row) by name, exposing that row's
+  **parameters** (columns) as read-only properties on the object.
+- Parts reference values with ordinary expressions — `ConfigRefA.Length` (or
+  `<<ConfigRefA>>.Length`) — never the sheet directly. Switching the row
+  (`ref.Configuration = "TypeB"`) re-points every parameter at once.
+
+### Table layout (fixed)
+```
+             A            B        C        D
+1   (title / notes)
+2   (label)           Length   Width    Enabled    <- row 2  = parameters
+3   TypeA                80      40       True     <- column A = configurations
+4   TypeB                85      42      False
+```
+- Parameter names in `B2`, `C2`, …; configuration names in `A3`, `A4`, …; values
+  in `B3…`. Rows/columns are kept contiguous (scans read until empty).
+
+## Key behaviours & decisions
+- **Read-through and read-only.** Values live at the MasterSheet; a ConfigRef
+  only reads them, and its exposed parameters are read-only in the editor.
+- **Two-way editing is rejected** (not deferred): a configuration cell is often
+  shared by several parts, so editing it in place would silently change all of
+  them. See `PLAN.md` decision 3.
+- **Type inference.** A parameter column is exposed as bool / int / float, or as
+  a quantity property (`App::PropertyLength`, `Angle`, `Mass`, …) when its cells
+  carry units. Unitless numbers act as millimetres in length contexts.
+- **Auto re-typing.** A column added while still empty starts as a string and is
+  re-typed once values arrive (otherwise sketch constraints fail with
+  "Failed to convert to Quantity").
+- **Configuration names are case-insensitive** (`TypeA` == `typea`); Switch
+  configuration lists them sorted with a case-insensitive type-to-search filter.
+- **Containers.** A ConfigRef can live in a `Part`, a `PartDesign::Body` or a
+  group — it is created as `Part::Part2DObjectPython`, the only Python-extensible
+  type `Body::isAllowed()` accepts.
+- **Caching.** `Table.snapshot()` memoises the parsed table by raw cell content,
+  so several ConfigRefs sharing one master parse it once.
+- **Validation.** The table editor shows `Table.validate()` results; a ConfigRef
+  reports `ConfigurationValid` / `ConfigurationError` in the property editor.
+- **i18n.** All UI strings go through `i18n.translate("SpreadSheetPlus", …)`;
+  compiled `.qm` files live in `resources/translations/`.
 
 ## Tech stack
-- FreeCAD 1.x / 2.x (AppImages; extracted copies used for dev/testing)
-- Python 3.11 (bundled with FreeCAD)
-- Namespace workbench structure: `freecad/spreadsheetplus/`
-- Addon Manager metadata via `package.xml`
+- FreeCAD 1.x / 2.x (AppImages; an extracted copy is used for dev/testing)
+- Python 3.11 (bundled with FreeCAD) and FreeCAD's Qt wrapper (`from PySide import …`)
+- Namespace workbench layout: `freecad/spreadsheetplus/`
+- Addon Manager metadata in `package.xml`
 
-## Architecture
+## Repository layout
 - `freecad/spreadsheetplus/__init__.py` — headless entry (exports `__version__`)
-- `freecad/spreadsheetplus/version.py` — `__version__`
-- `freecad/spreadsheetplus/init_gui.py` — GUI entry: registers icons, translations, commands, workbench
+- `freecad/spreadsheetplus/version.py` — `__version__` (currently `0.1.0`)
+- `freecad/spreadsheetplus/init_gui.py` — GUI entry: icons, translations, commands, workbench
 - `freecad/spreadsheetplus/workbench.py` — `SpreadSheetPlusWorkbench` (Gui.Workbench)
-- `freecad/spreadsheetplus/commands/` — command classes (toolbar/menu actions): CreateSheet, CreateMasterSheet, CreateConfigRef, EditConfigTable, SwitchConfiguration
-- `freecad/spreadsheetplus/dialogs/` — `TableEditorDialog` (table editor)
-- `freecad/spreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon)
+- `freecad/spreadsheetplus/commands/` — CreateSheet, CreateMasterSheet, CreateConfigRef, EditConfigTable, SwitchConfiguration
+- `freecad/spreadsheetplus/dialogs/` — `TableEditorDialog`, `SelectConfigurationDialog`
 - `freecad/spreadsheetplus/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
-- `freecad/spreadsheetplus/table.py` — configuration table model (rows = configs, cols = params)
+- `freecad/spreadsheetplus/table.py` — table model + `parse_value` + `TableSnapshot` cache
 - `freecad/spreadsheetplus/master_sheet.py` — `MasterSheet` wrapper + `create()`
-- `freecad/spreadsheetplus/config_ref.py` — `ConfigRef` proxy (row selection,
-  cross-file link) driving a `Part::Part2DObjectPython` object so it can live in
-  a `Part`, a `PartDesign::Body` or a group
-- `freecad/spreadsheetplus/resources/` — icons + translations + `Resources` manager
+- `freecad/spreadsheetplus/config_ref.py` — `ConfigRef` proxy (row selection, cross-file link, container support, status flags)
+- `freecad/spreadsheetplus/view_providers.py` — `ConfigRefViewProvider` (tree icon)
+- `freecad/spreadsheetplus/i18n.py` — `translate()` helper
+- `freecad/spreadsheetplus/resources/` — icons, translations, `Resources` manager
+- `tests/` — dependency-free FreeCAD test scripts + `run_freecad_gui.sh`
+- `docs/` — `usage.md`, `api.md`, `development.md`, `publishing.md`
 
 ## Install / dev loop
 - Dev (no install): `<freecad> -M <repo-root>`
@@ -41,7 +96,7 @@ custom workbench with toolbar/menu commands.
 
 ## Dev environment (this machine)
 - FreeCAD under test: extracted AppImage at `~/Applications/squashfs-root`,
-  version **1.1.3** (`Tests/run_freecad_gui.sh` finds it; `FREECAD_APPDIR`
+  version **1.1.3** (`tests/run_freecad_gui.sh` finds it; `FREECAD_APPDIR`
   overrides).
 - Full FreeCAD **source checkout**: `~/projects/FreeCad` — on `main`
   (2.x development) but with tags, so read the code of the build under test with
@@ -64,7 +119,7 @@ custom workbench with toolbar/menu commands.
 
 ## Notes / decisions
 - License: LGPL-2.1-or-later (same as FreeCAD)
-- Maintainer: Chris (email placeholder)
+- Maintainer: DeveloperChris <github@mailtwister.com>
 - ConfigRef parameters are read-only (read-through model): two-way editing is
   deliberately rejected so a naive edit can't silently change other parts that
   share the same configuration cell. Revisit only on user feedback.
@@ -73,9 +128,8 @@ custom workbench with toolbar/menu commands.
   `Sheet` wrapper routes `get()` through `getContents()`.
 
 ## Plan
-The detailed technical plan lives in `PLAN.md`. Core idea: a single **MasterSheet**
-per project (reusable across files), and a per-part **ConfigRef** that links to it
-and selects a named row, so many parts share one spreadsheet without copying it.
+The detailed technical plan, table convention and decision log live in
+`PLAN.md` (the core model is summarised at the top of this file).
 
 ## Docs (written as we go)
 - `docs/usage.md` — how-to: table layout, scripting quick start, cross-file, value types.
@@ -83,10 +137,20 @@ and selects a named row, so many parts share one spreadsheet without copying it.
 - `docs/development.md` — running FreeCAD headlessly (the AppRun
   `QT_QPA_PLATFORM=xcb` trap + `tests/run_freecad_gui.sh`), VS Code tasks, how to
   read FreeCAD's behaviour from the local source checkout.
+- `docs/publishing.md` — release checklist + FreeCAD Addon Index submission.
+- `README.md` (user-facing install/dev), `CHANGELOG.md` (release notes),
+  `PLAN.md` (roadmap + decision log), `AGENTS.md` (agent instructions).
 - Convention: each phase ships its docs in the same commit.
 
 ## Tasks
+
+**Status:** feature-complete — Phase 0–4 plus the pre-publish container/rename
+work are done; the only remaining item is the manual FreeCAD Addon Index
+submission. Test suites are green: **27 headless** and **17 GUI** (`test_gui` 6 +
+`test_container` 11).
+
 ### Completed
+
 - Scaffolded the namespace workbench addon (`freecad/spreadsheetplus/`)
 - Verified headless import + `Sheet` wrapper against FreeCAD 1.1.3
 - Verified GUI workbench registration + activation (offscreen Qt)

@@ -1,7 +1,21 @@
 # SpreadSheetPlus — AI system prompt
 
 You are helping build **SpreadSheetPlus**, a FreeCAD spreadsheet workbench
-(addon) written in Python, similar to FreeCAD's built-in Spreadsheet workbench.
+(Python addon) that **decouples the spreadsheet from the parts it drives**: one
+`MasterSheet` (a configuration table) per project, and a per-part `ConfigRef`
+that links to it and selects a named row, so many parts share one spreadsheet
+without copying it.
+
+**Read `.readmeai/project.ai` first** — it has the full overview, domain model,
+key behaviours/decisions and the hard-won FreeCAD gotchas.
+
+Glossary:
+- **MasterSheet** — document-level `Spreadsheet::Sheet` holding the table
+  (rows = configurations, columns = parameters).
+- **ConfigRef** — `App::FeaturePython` created per part; links to a MasterSheet
+  and exposes the selected configuration's parameters as read-only properties.
+- **Configuration** — a named row (e.g. `TypeA`), matched case-insensitively.
+- **Parameter** — a named column (e.g. `Length`), exposed as a typed property.
 
 ## Before starting any task
 - Read `.readmeai/project.ai` for the current project state, goals, and tasks.
@@ -15,8 +29,9 @@ You are helping build **SpreadSheetPlus**, a FreeCAD spreadsheet workbench
 - GUI-only code (workbench, commands, icons, translations) lives in
   `init_gui.py`, `workbench.py`, and `commands/`. Keep `__init__.py`
   headless-only (no `FreeCADGui` imports or calls).
-- Headless-safe code (the spreadsheet data model) lives in `sheet.py` and
-  wraps FreeCAD's built-in `Spreadsheet::Sheet` object.
+- Headless-safe code (the spreadsheet data model: `sheet.py`, `table.py`,
+  `master_sheet.py`, `config_ref.py`) must not import `FreeCADGui`; it wraps
+  FreeCAD's built-in `Spreadsheet::Sheet` object.
 - Use `FreeCAD as App` and `FreeCADGui as Gui` aliases.
 - Keep `__init__.py` fast to import — it runs on every FreeCAD startup.
 
