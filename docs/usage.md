@@ -26,7 +26,9 @@ want to check programmatically, and on every `ConfigRef` that links to the table
 — `TableValid` is `False`, `TableErrors` names the problems, and the reference
 gets a warning icon in the tree. A reference whose own configuration no longer
 resolves is flagged the same way through `ConfigurationValid` /
-`ConfigurationError`.
+`ConfigurationError`. All four fields appear together in a **Validation**
+section of the property editor, separate from the `Master` / `Configuration`
+inputs and the parameters exposed from the master.
 
 **Create ConfigRef** follows FreeCAD's container convention: if a Part container
 or a PartDesign Body is *active* (double-click it in the tree so its label is

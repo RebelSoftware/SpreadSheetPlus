@@ -61,8 +61,11 @@ which has the same coupling.
   ConfigRef surfaces both scopes in the property editor: `ConfigurationValid` /
   `ConfigurationError` for its own row, `TableValid` / `TableErrors` for the
   master table (including parameters whose name collides with an existing
-  property and can therefore not be exposed). A failure also switches the tree
-  icon to `spreadsheetplus-config-warning.svg`.
+  property and can therefore not be exposed). All four live in their own
+  **Validation** property group (`VALIDATION_GROUP`), kept visible and read-only
+  by `ConfigRef._normalize_status_properties()`, which also migrates documents
+  written before the group existed. A failure also switches the tree icon to
+  `spreadsheetplus-config-warning.svg`.
 - **The sheet is edited directly.** There is no custom table editor — the
   `MasterSheet` is a plain `Spreadsheet::Sheet` edited in FreeCAD's own
   spreadsheet editor.
@@ -227,8 +230,12 @@ submission. Test suites are green: **25 headless** and **15 GUI** (`test_gui` 4 
   shows `spreadsheetplus-config-warning.svg` while either status is false, and
   `ConfigRef._refresh_icon()` calls `signalChangeIcon()` when it changes.
   `_sync_properties` now skips a duplicated parameter name (first column wins)
-  instead of exposing the same property twice. Docs updated (`docs/api.md`,
-  `docs/usage.md`, `CHANGELOG.md`). Full suite green: 27 headless + 15 GUI.
+  instead of exposing the same property twice. The four status fields sit in
+  their own **Validation** property group; `_normalize_status_properties()`
+  moves them there with `setGroupOfProperty()` (metadata-only, value and editor
+  mode untouched) so documents written earlier are migrated on recompute. Docs
+  updated (`docs/api.md`, `docs/usage.md`, `CHANGELOG.md`). Full suite green:
+  28 headless + 15 GUI.
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons

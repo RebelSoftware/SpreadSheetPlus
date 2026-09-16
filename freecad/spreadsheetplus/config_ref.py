@@ -17,6 +17,11 @@ from .table import EMPTY, EXPRESSION, NUMBER, QUANTITY, STRING, Table
 
 GROUP = "ConfigRef"
 
+#: Property group holding the read-only validation status properties. They are
+#: kept out of `GROUP` so the problems do not sit in between the editable inputs
+#: (`Master`, `Configuration`) and the parameters exposed from the master.
+VALIDATION_GROUP = "Validation"
+
 #: Object type used for new ConfigRefs.
 #:
 #: A ConfigRef must be a child that its container accepts, and the containers
@@ -57,8 +62,9 @@ _HIDDEN_BASE_PROPERTIES = (
     "ShapeMaterial",
 )
 
-#: Read-only status properties, kept visible in the property editor so the
-#: problem is discoverable and not just in a console warning.
+#: Read-only status properties (all in `VALIDATION_GROUP`), kept visible in the
+#: property editor so the problem is discoverable and not just in a console
+#: warning.
 _STATUS_PROPERTIES = (
     "ConfigurationValid",
     "ConfigurationError",
@@ -222,7 +228,7 @@ class ConfigRef:
             obj.addProperty(
                 "App::PropertyBool",
                 "ConfigurationValid",
-                GROUP,
+                VALIDATION_GROUP,
                 "Whether the selected configuration resolves",
                 read_only=True,
             )
@@ -230,7 +236,7 @@ class ConfigRef:
             obj.addProperty(
                 "App::PropertyString",
                 "ConfigurationError",
-                GROUP,
+                VALIDATION_GROUP,
                 "Error message when the configuration cannot be resolved",
                 read_only=True,
             )
@@ -238,7 +244,7 @@ class ConfigRef:
             obj.addProperty(
                 "App::PropertyBool",
                 "TableValid",
-                GROUP,
+                VALIDATION_GROUP,
                 "Whether the master configuration table is structurally valid",
                 read_only=True,
             )
@@ -246,7 +252,7 @@ class ConfigRef:
             obj.addProperty(
                 "App::PropertyString",
                 "TableErrors",
-                GROUP,
+                VALIDATION_GROUP,
                 "Structural problems found in the master configuration table",
                 read_only=True,
             )
@@ -421,7 +427,7 @@ class ConfigRef:
             changed = True
         # Keep the status visible and read-only in the property editor (also
         # migrates properties created as hidden in older documents).
-        self._set_editor_modes(obj)
+        self._normalize_status_properties(obj)
         if changed:
             self._refresh_icon(obj)
 
@@ -434,13 +440,22 @@ class ConfigRef:
         if obj.TableErrors != message:
             obj.TableErrors = message
             changed = True
-        self._set_editor_modes(obj)
+        self._normalize_status_properties(obj)
         if changed:
             self._refresh_icon(obj)
 
     @staticmethod
-    def _set_editor_modes(obj) -> None:
+    def _normalize_status_properties(obj) -> None:
+        """Keep the status properties read-only, visible and in one group.
+
+        Also migrates documents written by earlier versions: the status
+        properties used to be created hidden (before 0.2) and in the
+        "ConfigRef" group (before the validation group existed). Changing a
+        group is metadata only, so the value and the editor mode are untouched.
+        """
         for name in _STATUS_PROPERTIES:
+            if obj.getGroupOfProperty(name) != VALIDATION_GROUP:
+                obj.setGroupOfProperty(name, VALIDATION_GROUP)
             if obj.getEditorMode(name) != ["ReadOnly"]:
                 obj.setEditorMode(name, 1)
 

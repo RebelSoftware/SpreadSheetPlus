@@ -17,6 +17,11 @@ ISO 8601 (`YYYY-MM-DD`).
 - `TableSnapshot.problems()` — the structural check as a method on the parsed
   snapshot. `Table.validate()` now delegates to it, so both the master sheet and
   every `ConfigRef` report the same problems from the same cached parse.
+- The four status properties (`ConfigurationValid`, `ConfigurationError`,
+  `TableValid`, `TableErrors`) now live in their own **Validation** group in the
+  property editor instead of sharing the `ConfigRef` group, so they no longer
+  sit in between the editable inputs and the exposed parameters. Documents
+  written before the group existed are migrated on the next recompute.
 
 **Fixed**
 - A `ConfigRef` can now be moved (dragged) into any container, including a

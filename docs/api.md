@@ -135,6 +135,14 @@ Object properties:
   otherwise be dropped silently). Both are set when the reference recomputes;
   with no master linked they read `False` / `"No master spreadsheet linked"`.
 
+All four status properties live in their own property-editor group,
+`VALIDATION_GROUP` (`"Validation"`), so the reported problems do not sit in
+between the editable inputs (`Master`, `Configuration`) and the parameters
+exposed from the master, which stay in `GROUP` (`"ConfigRef"`). Documents
+written before that group existed are migrated on the next recompute;
+`ConfigRef._normalize_status_properties()` also keeps them visible and
+read-only.
+
 The view provider turns either failure into a tree signal: the reference is
 shown with a warning icon (`spreadsheetplus-config-warning.svg`) instead of the
 normal one whenever `ConfigurationValid` or `TableValid` is false.

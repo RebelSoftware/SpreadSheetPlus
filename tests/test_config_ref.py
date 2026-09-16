@@ -12,6 +12,7 @@ import FreeCAD
 
 from freecad.spreadsheetplus.master_sheet import MasterSheet
 from freecad.spreadsheetplus.config_ref import create as create_config_ref
+from freecad.spreadsheetplus.config_ref import _STATUS_PROPERTIES
 from fcsp_test_support import save_document
 
 
@@ -105,9 +106,14 @@ def test_parameters_are_read_only_in_editor():
         assert "ReadOnly" in ref.getEditorMode("Length")
         assert "ReadOnly" in ref.getEditorMode("Enabled")
 
-        # ...and the status properties are visible + read-only
-        assert ref.getEditorMode("ConfigurationValid") == ["ReadOnly"]
-        assert ref.getEditorMode("ConfigurationError") == ["ReadOnly"]
+        # ...and the status properties are visible + read-only, in their own group
+        for name in _STATUS_PROPERTIES:
+            assert ref.getEditorMode(name) == ["ReadOnly"], name
+            assert ref.getGroupOfProperty(name) == "Validation", name
+
+        # the parameters themselves stay in the ConfigRef group
+        assert ref.getGroupOfProperty("Length") == "ConfigRef"
+        assert ref.getGroupOfProperty("Master") == "ConfigRef"
 
         # ...but execute() still keeps them in sync with the master
         master.set_value("TypeA", "Length", 999)
@@ -116,6 +122,38 @@ def test_parameters_are_read_only_in_editor():
     finally:
         save_document(doc, "config_ref_readonly")
         FreeCAD.closeDocument("ConfigRefTest4")
+
+
+def test_status_properties_move_to_validation_group():
+    doc = FreeCAD.newDocument("ConfigRefTest7")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+
+        # pretend the document was written by a version that created the status
+        # properties hidden, in the ConfigRef group
+        for name in _STATUS_PROPERTIES:
+            ref.setGroupOfProperty(name, "ConfigRef")
+            ref.setEditorMode(name, 3)  # Hidden | ReadOnly
+            assert ref.getGroupOfProperty(name) == "ConfigRef"
+            assert ref.getEditorMode(name) == ["ReadOnly", "Hidden"]
+
+        ref.touch()
+        doc.recompute()
+
+        for name in _STATUS_PROPERTIES:
+            assert ref.getGroupOfProperty(name) == "Validation", name
+            assert ref.getEditorMode(name) == ["ReadOnly"], name
+
+        # a group change is metadata only: the reported state is intact
+        assert ref.ConfigurationValid is True
+        assert ref.TableValid is True
+        assert ref.ConfigurationError == ""
+        assert ref.TableErrors == ""
+    finally:
+        save_document(doc, "config_ref_status_group")
+        FreeCAD.closeDocument("ConfigRefTest7")
 
 
 def test_new_column_retyped_after_values_arrive():
