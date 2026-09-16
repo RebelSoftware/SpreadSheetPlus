@@ -136,16 +136,6 @@ by this version as well as the `App::FeaturePython` objects written by version
   created as; the only Python-extensible type a `PartDesign::Body` accepts.
 - `LEGACY_OBJECT_TYPE` (`App::FeaturePython`) — the pre-0.2 type.
 - `GROUP` (`ConfigRef`) — the property group shown in the property editor.
-## `freecad.spreadsheetplus.sheet`
-
-### `class Sheet(obj)`
-
-Low-level wrapper around a `Spreadsheet::Sheet` (used internally by `Table`).
-
-- `create(doc=None, name="Spreadsheet")` → `Sheet`
-- `set(address, value)`, `get(address)`, `get_contents()`, `clear(address)`, `clear_all()`
-- `set_alias(address, alias)`, `get_alias(address)`, `get_cell_from_alias(alias)`
-
 ## `freecad.spreadsheetplus.view_providers`
 
 ### `class ConfigRefViewProvider`

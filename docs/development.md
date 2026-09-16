@@ -9,7 +9,7 @@ The addon is a **namespace package**, so FreeCAD needs the repository root on
 `sys.path`; pass it explicitly with `-M`:
 
 ```bash
-freecadcmd -M /path/to/SpreadSheetPlus tests/test_sheet.py
+freecadcmd -M /path/to/SpreadSheetPlus tests/test_table.py
 freecadcmd -M /path/to/SpreadSheetPlus -c "import freecad.spreadsheetplus as m; print(m.__version__)"
 ```
 

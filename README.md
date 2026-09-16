@@ -42,7 +42,6 @@ The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 | `freecad/spreadsheetplus/init_gui.py` | GUI entry: registers icons/translations/commands/workbench |
 | `freecad/spreadsheetplus/workbench.py` | `SpreadSheetPlusWorkbench` |
 | `freecad/spreadsheetplus/commands/` | toolbar/menu command classes |
-| `freecad/spreadsheetplus/sheet.py` | `Sheet` wrapper around `Spreadsheet::Sheet` |
 | `freecad/spreadsheetplus/table.py` | configuration table model |
 | `freecad/spreadsheetplus/master_sheet.py` | `MasterSheet` wrapper |
 | `freecad/spreadsheetplus/config_ref.py` | `ConfigRef` row-selection link |
@@ -54,7 +53,7 @@ The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 ## Documentation
 
 - [Usage guide](docs/usage.md) — how to use the workbench (scripting workflow)
-- [API reference](docs/api.md) — `Table`, `MasterSheet`, `ConfigRef`, `Sheet`
+- [API reference](docs/api.md) — `Table`, `MasterSheet`, `ConfigRef`
 - [Development environment](docs/development.md) — running FreeCAD and the tests
   (headless GUI runs, VS Code tasks, where to find FreeCAD's behaviour)
 - [Publishing](docs/publishing.md) — release + Addon Index submission
@@ -66,7 +65,7 @@ Tests are dependency-free Python scripts that run inside FreeCAD's interpreter.
 Run them from the repository root with the root added to the module path:
 
 ```bash
-freecadcmd -M <repo-root> tests/test_sheet.py
+freecadcmd -M <repo-root> tests/test_table.py
 ```
 
 `freecadcmd` is FreeCAD's command-line executable — for an AppImage, invoke it
@@ -96,12 +95,13 @@ look up FreeCAD's own behaviour in a local source checkout.
 ### Scripting API
 
 ```python
-from freecad.spreadsheetplus.sheet import Sheet
+from freecad.spreadsheetplus.master_sheet import MasterSheet
 
-sheet = Sheet.create(name="MySheet")
-sheet.set("A1", 42)          # raw cell content
-sheet.get("A1")              # -> "42"
-sheet.set_alias("A1", "answer")
+master = MasterSheet.create(name="MasterSheet")
+master.add_parameter("Length")
+master.add_configuration("TypeA")
+master.set_value("TypeA", "Length", 80)
+master.get_value("TypeA", "Length")   # -> "80"
 ```
 
 ## License

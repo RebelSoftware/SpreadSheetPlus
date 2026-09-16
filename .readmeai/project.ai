@@ -77,7 +77,6 @@ which has the same coupling.
 - `freecad/spreadsheetplus/workbench.py` — `SpreadSheetPlusWorkbench` (Gui.Workbench)
 - `freecad/spreadsheetplus/commands/` — CreateMasterSheet, CreateConfigRef, SwitchConfiguration
 - `freecad/spreadsheetplus/dialogs/` — `SelectConfigurationDialog` (row picker)
-- `freecad/spreadsheetplus/sheet.py` — `Sheet` wrapper around `Spreadsheet::Sheet`
 - `freecad/spreadsheetplus/table.py` — table model + `parse_value` + `TableSnapshot` cache
 - `freecad/spreadsheetplus/master_sheet.py` — `MasterSheet` wrapper + `create()`
 - `freecad/spreadsheetplus/config_ref.py` — `ConfigRef` proxy (row selection, cross-file link, container support, status flags)
@@ -127,9 +126,9 @@ which has the same coupling.
 - ConfigRef parameters are read-only (read-through model): two-way editing is
   deliberately rejected so a naive edit can't silently change other parts that
   share the same configuration cell. Revisit only on user feedback.
-- Cell read API: use `Sheet.getContents(address)` for raw cell content;
-  `Sheet.get(address)` only returns cells exposed as properties, so the
-  `Sheet` wrapper routes `get()` through `getContents()`.
+- Cell read API (FreeCAD's `Spreadsheet::Sheet` object): use
+  `sheet.getContents(address)` for raw cell content; `sheet.get(address)` only
+  works for cells exposed as properties (aliases).
 
 ## Plan
 The detailed technical plan, table convention and decision log live in
@@ -150,7 +149,7 @@ The detailed technical plan, table convention and decision log live in
 
 **Status:** feature-complete — Phase 0–4 plus the pre-publish container/rename
 work are done; the only remaining item is the manual FreeCAD Addon Index
-submission. Test suites are green: **27 headless** and **15 GUI** (`test_gui` 4 +
+submission. Test suites are green: **25 headless** and **15 GUI** (`test_gui` 4 +
 `test_container` 11).
 
 ### Completed
@@ -213,6 +212,9 @@ submission. Test suites are green: **27 headless** and **15 GUI** (`test_gui` 4 
   `CreateMasterSheet`) and `EditConfigTable` + `TableEditorDialog` (edit the
   sheet directly in FreeCAD's spreadsheet editor). Toolbar/menu/context menu now
   offer CreateMasterSheet, CreateConfigRef, SwitchConfiguration.
+- Removed the unused `sheet.py` (`Sheet` wrapper) and `tests/test_sheet.py`;
+  `master_sheet.py`/`table.py` wrap `Spreadsheet::Sheet` directly (25 headless
+  tests total).
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons

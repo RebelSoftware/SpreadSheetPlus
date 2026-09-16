@@ -29,7 +29,7 @@ Glossary:
 - GUI-only code (workbench, commands, icons, translations) lives in
   `init_gui.py`, `workbench.py`, and `commands/`. Keep `__init__.py`
   headless-only (no `FreeCADGui` imports or calls).
-- Headless-safe code (the spreadsheet data model: `sheet.py`, `table.py`,
+- Headless-safe code (the spreadsheet data model: `table.py`,
   `master_sheet.py`, `config_ref.py`) must not import `FreeCADGui`; it wraps
   FreeCAD's built-in `Spreadsheet::Sheet` object.
 - Use `FreeCAD as App` and `FreeCADGui as Gui` aliases.

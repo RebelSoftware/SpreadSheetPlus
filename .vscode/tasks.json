@@ -4,7 +4,7 @@
 		{
 			"label": "FreeCAD: Run all tests",
 			"type": "shell",
-			"command": "for t in test_sheet test_table test_config_ref test_cross_file test_robustness test_units test_i18n test_metadata; do echo \"=== $t ===\"; ${workspaceFolder}/tests/run_freecad_gui.sh freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
+			"command": "for t in test_table test_config_ref test_cross_file test_robustness test_units test_i18n test_metadata; do echo \"=== $t ===\"; ${workspaceFolder}/tests/run_freecad_gui.sh freecadcmd -M \"${workspaceFolder}\" \"${workspaceFolder}/tests/$t.py\"; done",
 			"problemMatcher": [],
 			"group": {
 				"kind": "test",
@@ -16,19 +16,6 @@
 				"clear": true,
 				"panel": "dedicated"
 			}
-		},
-		{
-			"label": "FreeCAD: Test sheet",
-			"type": "shell",
-			"command": "${workspaceFolder}/tests/run_freecad_gui.sh",
-			"args": [
-				"freecadcmd",
-				"-M",
-				"${workspaceFolder}",
-				"${workspaceFolder}/tests/test_sheet.py"
-			],
-			"problemMatcher": [],
-			"group": "test"
 		},
 		{
 			"label": "FreeCAD: Test table",
