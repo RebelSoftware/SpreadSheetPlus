@@ -206,6 +206,19 @@ Example:
    are therefore read-only in the property editor.
 4. **Parameter surface** — `ConfigRef` exposes **all** parameters of the table
    as read-only dynamic properties.
+5. **Part variants** — several configurations per part, one selector each.
+   FreeCAD's `App::Link` copy-on-change only mirrors properties of the object
+   that is *linked*, never of its children, so the selectors live on the part
+   (the Body/Part) and not on the `ConfigRef`, and each variant inherits its own
+   rows when the link copies the part.
+   Nothing inside a part may depend on the part itself (FreeCAD rejects that as a
+   DAG cycle) and FreeCAD does not re-execute a part's children when one of its
+   properties changes - which is exactly what a variant update is. A Python
+   **document observer** (`FreeCAD.addDocumentObserver`, still pure Python - no
+   C++ addon, which the Addon Index could not distribute) is the only hook that
+   sees the pasted value, and it makes the copy re-read its rows. An object-level
+   `signalChanged` is not exposed to Python; an `App::DocumentObjectExtension`
+   would need C++ to attach (`addExtension` rejects non-Python extensions).
 
 ### Remaining open (can decide later)
 - Whether `MasterSheet` wraps an existing `Spreadsheet::Sheet` or owns its own.

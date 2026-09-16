@@ -114,12 +114,22 @@ Attach `ConfigRefViewProvider` to `obj` (GUI only). Called by `create()`.
 Point an existing ConfigRef's `Master` at a sheet in an external document. Opens
 `file_path` if it is not already open. The owner document must already be saved.
 
+### `switch_configuration(obj, row)`
+
+Select `row` for a ConfigRef: writes the part's selector when it has one (and
+marks the ConfigRef for recompute, since a container property change does not
+re-execute its children), otherwise writes `Configuration` directly.
+
 ### `class ConfigRef` — FeaturePython proxy
 
 Object properties:
 
 - `Master` — `App::PropertyXLink` to the master spreadsheet (same or another document).
 - `Configuration` — `App::PropertyString` — the selected row name.
+- `ConfigurationName` — `App::PropertyString` — what this configuration is called
+  on the part; defaults to the object's name. It names the selector property the
+  container gets (see *Part variants*) and is preserved by an `App::Link` copy,
+  so a variant's ConfigRefs keep pointing at their selectors.
 - `ManagedParameters` — `App::PropertyStringList` — parameter names exposed as
   properties (managed automatically).
 - One dynamic property per parameter (e.g. `Length`), typed by inference:
@@ -152,12 +162,62 @@ by this version as well as the `App::FeaturePython` objects written by version
 0.1. The geometry/attachment properties of the container-friendly base type
 (`Shape`, `AttachmentSupport`, `MapMode`, …) are hidden in the property editor.
 
+### Part variants
+
+A part can be driven by several configurations at once, one per master table.
+FreeCAD's `App::Link` copy-on-change only mirrors properties of the object that is
+*linked*, never of its children, so the part - not the ConfigRef - has to carry
+the selectors:
+
+- Every ConfigRef inside a container makes the container grow one selector
+  property named after its `ConfigurationName` (`App::PropertyString`, group
+  `ConfigRef`, status `CopyOnChange`). The names this workbench created are listed
+  in the container's hidden `_ConfigurationSlots` property; selectors whose
+  ConfigRef is gone are removed again, and no property the workbench did not
+  create is ever touched.
+- `Configuration` follows its selector. Both directions are kept equal:
+  `config_ref.switch_configuration()` (and any direct write to `Configuration`)
+  copies the row up into the selector, and a selector change marks the ConfigRefs
+  of that part for recompute so they re-read their row. A clash - two
+  configurations with the same `ConfigurationName`, or a name that collides with
+  an existing property of the container - is reported through
+  `ConfigurationError`, and that ConfigRef falls back to its own
+  `Configuration`.
+- `Link → part` with **Link Copy On Change** `Enabled`/`Tracking` then offers one
+  entry per configuration under `Configuration (ConfigRef)`, and every variant
+  keeps its own rows. See `docs/usage.md`.
+
 ### Module constants
 
 - `CONTAINER_OBJECT_TYPE` (`Part::Part2DObjectPython`) — what new ConfigRefs are
   created as; the only Python-extensible type a `PartDesign::Body` accepts.
 - `LEGACY_OBJECT_TYPE` (`App::FeaturePython`) — the pre-0.2 type.
 - `GROUP` (`ConfigRef`) — the property group shown in the property editor.
+
+## `freecad.spreadsheetplus.variants`
+
+### `attach()` / `detach()`
+
+Attach (idempotently) or detach the module's document observer. `attach()` is
+called from the package's `__init__`, so part variants work headless as well as
+in the GUI.
+
+### `class VariantObserver`
+
+A `FreeCAD.addDocumentObserver` object, kept in step with the parts in every
+document. FreeCAD pastes a variant's new selector value into the *copy*, and no
+object inside the part may depend on the part itself (that is a DAG cycle), so
+this observer is the only hook that sees the change. It does two things:
+
+- a selector changed → mark that part's ConfigRefs for recompute, so they read
+  the new row (`slotChangedObject`);
+- a ConfigRef's `Configuration` changed → copy it up into the part's selector.
+
+Both directions only make the two values equal, so they converge without
+re-entrancy bookkeeping. The handler runs on every property change in every
+document, so it is deliberately cheap: it skips while a document is being
+restored and otherwise tests a set of selector names before doing any work.
+
 ## `freecad.spreadsheetplus.view_providers`
 
 ### `class ConfigRefViewProvider`

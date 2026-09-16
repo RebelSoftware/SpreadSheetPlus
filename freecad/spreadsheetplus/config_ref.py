@@ -72,6 +72,15 @@ _STATUS_PROPERTIES = (
     "TableErrors",
 )
 
+#: Hidden list of the configuration selectors a container owns. It records
+#: which properties on the container were created by this workbench, so stale
+#: ones can be removed without ever touching a property of the document.
+_SLOT_REGISTRY = "_ConfigurationSlots"
+
+#: Names of the configuration selectors currently in use, so the document
+#: observer can recognise one without inspecting any object.
+_SLOT_NAMES: set = set()
+
 # FreeCAD unit-type name -> property class for quantity columns. Unmapped unit
 # types fall back to App::PropertyString (the value is stored as text).
 _QUANTITY_PROPERTY_BY_TYPE = {
@@ -217,6 +226,22 @@ class ConfigRef:
                 GROUP,
                 "Selected configuration name",
             )
+        if not hasattr(obj, "ConfigurationName"):
+            obj.addProperty(
+                "App::PropertyString",
+                "ConfigurationName",
+                GROUP,
+                "Name of this configuration on its part",
+            )
+        if not obj.ConfigurationName:
+            # Documents written before this property existed: the object name is
+            # a sensible default, and unlike the object name it survives an
+            # App::Link copy (which is what keeps a variant's selectors wired).
+            obj.ConfigurationName = obj.Name
+        # A selected row is a configuration *choice*, so mark the property:
+        # App::Link copy-on-change mirrors the marked properties of the object
+        # that is linked, which is what gives every link its own selection.
+        obj.setPropertyStatus("Configuration", "CopyOnChange")
         if not hasattr(obj, "ManagedParameters"):
             obj.addProperty(
                 "App::PropertyStringList",
@@ -281,9 +306,11 @@ class ConfigRef:
     def _sync(self, obj) -> None:
         if self._syncing:
             return
+        problems = self._apply_container_row(obj)
         table = self._table(obj)
         if table is None:
-            self._set_status(obj, "No master spreadsheet linked", False)
+            problems.append("No master spreadsheet linked")
+            self._set_status(obj, "\n".join(problems), False)
             self._set_table_status(obj, ["No master spreadsheet linked"])
             return
         snapshot = table.snapshot()
@@ -293,8 +320,33 @@ class ConfigRef:
             self._sync_values(obj, snapshot, managed)
         finally:
             self._syncing = False
-        self._update_status(obj, snapshot)
+        self._update_status(obj, snapshot, problems)
         self._update_table_status(obj, snapshot, managed)
+
+    def _apply_container_row(self, obj) -> list[str]:
+        """Adopt the row selected on the part, when the part owns a selector.
+
+        FreeCAD's App::Link copy-on-change only mirrors properties of the object
+        that is linked, never of its children, so a part carries one selector
+        property per configuration - that is what lets a variant pick its own row
+        for every configuration instead of sharing one part-wide name. A
+        ConfigRef follows that selector; `variants.VariantObserver` is what marks
+        it for recompute when the selector changes, because nothing inside the
+        part may depend on the part itself (FreeCAD forbids that cycle).
+        """
+        container = parent_group(obj)
+        if container is None or container.TypeId == "App::LinkGroup":
+            # Outside a part - including the private LinkGroup FreeCAD uses to
+            # hold copy-on-change copies - the ConfigRef is its own selector.
+            return []
+        row, problems = _sync_slots(container, obj)
+        if row is None:
+            # No usable selector (the name is taken on the container): the
+            # ConfigRef keeps working from its own value, and says why.
+            return problems
+        if row != obj.Configuration:
+            obj.Configuration = row
+        return problems
 
     def _sync_properties(self, obj, snapshot) -> list[str]:
         managed = list(obj.ManagedParameters)
@@ -389,16 +441,14 @@ class ConfigRef:
                 # value cannot be coerced to the property type; leave as-is
                 continue
 
-    def _update_status(self, obj, snapshot) -> None:
+    def _update_status(self, obj, snapshot, problems=()) -> None:
+        messages = list(problems)
         config = obj.Configuration
-        error = ""
-        valid = True
         if config:
             configs = snapshot.configs
             if configs and snapshot.resolve_config(config) is None:
-                error = f"Unknown configuration: {config!r}"
-                valid = False
-        self._set_status(obj, error, valid)
+                messages.append(f"Unknown configuration: {config!r}")
+        self._set_status(obj, "\n".join(messages), not messages)
 
     def _update_table_status(self, obj, snapshot, managed) -> None:
         """Report structural problems in the linked master table.
@@ -519,6 +569,117 @@ def parent_group(obj):
         except Exception:
             continue
     return None
+
+
+def slot_name(obj) -> str:
+    """Name of the container property that selects *obj*'s row."""
+    name = getattr(obj, "ConfigurationName", "")
+    return name or obj.Name
+
+
+def _config_refs_in(container) -> list:
+    """The ConfigRefs that live directly in *container*."""
+    found = []
+    try:
+        children = list(container.Group)
+    except Exception:
+        return found
+    for child in children:
+        if isinstance(getattr(child, "Proxy", None), ConfigRef):
+            found.append(child)
+    return found
+
+
+def _registered_slots(container) -> list[str]:
+    """The configuration selectors this workbench created on *container*."""
+    return list(getattr(container, _SLOT_REGISTRY, ()) or ())
+
+
+def _sync_slots(container, obj):
+    """Make sure *container* carries a row selector for every ConfigRef in it.
+
+    Returns ``(row, problems)``: the row selected on the container (``None``
+    when the container cannot carry a selector for *obj*) and a list of
+    human-readable problems.
+
+    The selectors are the object of FreeCAD's ``App::Link`` copy-on-change: they
+    carry the ``CopyOnChange`` status, so a link to the part gains one mirror per
+    configuration under ``Configuration (<group>)`` in its property editor, and
+    a variant inherits the row selected on that link. That is why they live on
+    the container and not on the ConfigRef - only the linked object's own
+    properties are mirrored.
+    """
+    problems = []
+    if not hasattr(container, _SLOT_REGISTRY):
+        container.addProperty(
+            "App::PropertyStringList",
+            _SLOT_REGISTRY,
+            GROUP,
+            "Configuration selectors created by SpreadSheetPlus",
+            hidden=True,
+        )
+
+    wanted = {}
+    for ref in _config_refs_in(container):
+        wanted.setdefault(slot_name(ref), []).append(ref)
+
+    # Forget selectors whose ConfigRef is gone (deleted, renamed or moved out).
+    registered = _registered_slots(container)
+    keep = [name for name in registered if name in wanted]
+    for name in registered:
+        if name not in wanted and hasattr(container, name):
+            container.removeProperty(name)
+            _SLOT_NAMES.discard(name)
+    if keep != registered:
+        setattr(container, _SLOT_REGISTRY, keep)
+
+    name = slot_name(obj)
+    if not name.isidentifier():
+        problems.append(f"configuration name is not a valid property name: {name!r}")
+        return None, problems
+    if len(wanted.get(name, ())) > 1:
+        problems.append(
+            f"configuration name is used by more than one ConfigRef: {name!r}"
+        )
+        return None, problems
+    if not hasattr(container, name):
+        container.addProperty(
+            "App::PropertyString",
+            name,
+            GROUP,
+            f"Selected configuration row of {obj.Label}",
+        )
+        container.setPropertyStatus(name, "CopyOnChange")
+        setattr(container, _SLOT_REGISTRY, keep + [name])
+        _SLOT_NAMES.add(name)
+    elif name not in keep:
+        # The property predates us (a name clash on the container): never claim
+        # a property this workbench did not create.
+        problems.append(
+            f"cannot add a {name!r} configuration: {container.Label} already "
+            f"has a property with that name"
+        )
+        return None, problems
+    if not getattr(container, name):
+        # a fresh (or emptied) selector starts from the ConfigRef's selection
+        setattr(container, name, obj.Configuration)
+    return getattr(container, name), problems
+
+
+def switch_configuration(obj, row: str) -> None:
+    """Select *row* for *obj*, through the part's selector when it has one.
+
+    Writing the part's selector marks *obj* for recompute explicitly, because a
+    container property change does not re-execute its children - this route has
+    to work whether or not `variants.VariantObserver` is attached.
+    """
+    container = parent_group(obj)
+    name = slot_name(obj)
+    if container is not None and name in _registered_slots(container):
+        setattr(container, name, row)
+        obj.touch()
+        return
+    obj.Configuration = row
 
 
 def _expressions_of(obj):

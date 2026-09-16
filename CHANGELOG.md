@@ -6,6 +6,18 @@ ISO 8601 (`YYYY-MM-DD`).
 ## [Unreleased]
 
 **Added**
+- **Part variants.** A part can now be configured by several `ConfigRef`s at
+  once, one per master table, and every `App::Link` variant picks its own row for
+  each of them (Length, Pitch, Head style, …) instead of needing one
+  combinatorial row per possible part. Each ConfigRef inside a container gives
+  the container a selector property named after its new `ConfigurationName`,
+  marked `CopyOnChange` so the link mirrors one entry per configuration under
+  `Configuration (ConfigRef)`. `freecad.spreadsheetplus.variants` attaches the
+  document observer that keeps a part's selectors and its ConfigRefs equal in
+  both directions - FreeCAD pastes a variant's new value into the copy and
+  nothing inside the part may depend on the part itself, so this is the only hook
+  that sees it. Clashing configuration names are reported through
+  `ConfigurationError`.
 - Validation is now surfaced on the part, not just in the API. A `ConfigRef`
   carries two read-only status properties, `TableValid` and `TableErrors`, that
   report structural problems in the linked master table (duplicate parameter

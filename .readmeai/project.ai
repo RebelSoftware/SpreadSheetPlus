@@ -55,6 +55,11 @@ which has the same coupling.
   type `Body::isAllowed()` accepts.
 - **Caching.** `Table.snapshot()` memoises the parsed table by raw cell content,
   so several ConfigRefs sharing one master parse it once.
+- **Variants.** A part can be configured by several ConfigRefs at once - one per
+  master table - and each `App::Link` variant sets its own row for every one of
+  them (`Configuration (ConfigRef)` on the link). The selectors live on the part,
+  because `App::Link` copy-on-change only mirrors the linked object's own
+  properties.
 - **Validation.** `TableSnapshot.problems()` (via `MasterSheet.validate()` /
   `Table.validate()`) reports structural table problems (duplicate parameter
   names, duplicate configuration names, invalid identifier names). Every
@@ -223,6 +228,19 @@ submission. Test suites are green: **25 headless** and **15 GUI** (`test_gui` 4 
 - Removed the unused `sheet.py` (`Sheet` wrapper) and `tests/test_sheet.py`;
   `master_sheet.py`/`table.py` wrap `Spreadsheet::Sheet` directly (25 headless
   tests total).
+- Part variants: several configurations per part, one selector each. A part
+  (Body/Part) containing ConfigRefs grows one `CopyOnChange` selector property
+  per configuration, named after the ConfigRef's `ConfigurationName`; `Link` +
+  **Link Copy On Change** then gives every variant its own rows, all still driven
+  by the shared masters. `variants.VariantObserver` (a
+  `FreeCAD.addDocumentObserver` object attached from the package `__init__`)
+  keeps selectors and `ConfigRef.Configuration` equal in both directions and
+  marks the ConfigRefs for recompute when a selector changes - FreeCAD pastes a
+  variant's value into the copy and never re-executes the copy's children, and
+  nothing inside a part may depend on the part itself (DAG cycle), so this is
+  the only hook that sees it. Stays pure Python: a C++ addon could not be
+  distributed through the Addon Index. `tests/test_variants.py` (8 tests).
+  Full suite green: 36 headless + 15 GUI.
 - Validation surfacing: moved the structural check onto the cached snapshot
   (`TableSnapshot.problems()`, `Table.validate()` delegates to it) and added
   `TableValid` / `TableErrors` to ConfigRef, computed from the snapshot plus the

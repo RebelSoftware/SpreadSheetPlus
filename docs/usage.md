@@ -42,6 +42,39 @@ one of them.
 search box (type to filter, case-insensitive), so you pick a row instead of
 typing its exact name.
 
+## Part variants (several configurations on one part)
+
+A part can be driven by **several** configurations at once, each from its own
+master table - a bolt with a length table, a head-style table and a pitch table,
+for example - and every variant picks its own row from each of them. This is what
+makes a part configurable without a combinatorial row per possible part.
+
+When a `ConfigRef` sits inside a container (a Body or a Part), the container
+itself grows a **selector** property named after that ConfigRef's
+`ConfigurationName`, and the ConfigRef follows it. The selectors carry FreeCAD's
+`CopyOnChange` status, so an `App::Link` can mirror them and copy the part:
+
+1. Put one `ConfigRef` per master table inside the part. The part gains one
+   selector per configuration (`BoltLength`, `HeadStyle`, …) - the ConfigRef's
+   `ConfigurationName` names it, and defaults to the ConfigRef's own name.
+2. Select the part and **Link** it (`Std_LinkMake`), then set its
+   **Link Copy On Change** to `Enabled` (or `Tracking` to follow later template
+   changes).
+3. The link now offers a `Configuration (ConfigRef)` group in the property
+   editor with one entry per configuration. Change any of them and FreeCAD copies
+   the part: that link is an independent variant with its own rows.
+
+One template plus a handful of links gives you as many variants as you like, all
+still driven by the same master tables - edit a row in a master and every part
+using that row follows.
+
+Changing a row on the **part** or on the **ConfigRef** keeps the other in step,
+so *Switch Configuration* and hand edits keep working exactly as before. Two
+configurations in one part need distinct `ConfigurationName` values, and the name
+must not collide with an existing property of the part (`Shape`, `Tip`, …); either
+case is reported in `ConfigurationError` rather than silently ignored, and that
+ConfigRef then falls back to its own row.
+
 ## The table layout
 
 One spreadsheet = one configuration table. The layout is fixed:

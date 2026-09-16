@@ -16,3 +16,9 @@ Keep this file fast - it runs on every FreeCAD startup.
 """
 
 from .version import __version__  # noqa: F401
+
+# Part variants need a document observer: it is the only hook that sees FreeCAD
+# re-configuring an App::Link copy (see freecad/spreadsheetplus/variants.py).
+from .variants import attach as _attach_variants
+
+_attach_variants()
