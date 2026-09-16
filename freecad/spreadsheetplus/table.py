@@ -116,6 +116,22 @@ class TableSnapshot:
         """Parsed ``(kind, value)`` cells for every configuration of a parameter."""
         return [self._cells[(config, param)] for config in self.configs]
 
+    def problems(self) -> list[str]:
+        """Human-readable structural problems (empty means OK).
+
+        Derived from the cached parse, so callers get validation for free
+        without reading the spreadsheet again.
+        """
+        problems = []
+        if len(self.params) != len(set(self.params)):
+            problems.append("duplicate parameter names")
+        if len(self.configs) != len({name.lower() for name in self.configs}):
+            problems.append("duplicate configuration names (case-insensitive)")
+        for param in self.params:
+            if not param.isidentifier():
+                problems.append(f"parameter name is not a valid identifier: {param!r}")
+        return problems
+
 
 @lru_cache(maxsize=64)
 def _parse_snapshot(key):
@@ -307,14 +323,4 @@ class Table:
     # -- validation ------------------------------------------------------
     def validate(self) -> list[str]:
         """Return a list of human-readable problems (empty means OK)."""
-        problems = []
-        params = self.parameters()
-        configs = self.configurations()
-        if len(params) != len(set(params)):
-            problems.append("duplicate parameter names")
-        if len(configs) != len({c.lower() for c in configs}):
-            problems.append("duplicate configuration names (case-insensitive)")
-        for param in params:
-            if not param.isidentifier():
-                problems.append(f"parameter name is not a valid identifier: {param!r}")
-        return problems
+        return self.snapshot().problems()

@@ -55,6 +55,10 @@ same object (shared across ConfigRefs and recomputes).
 - `column(param)` → `list[(kind, value)]` — parsed values for every configuration.
 - `resolve_config(name)` → `str | None` — canonical stored-case name for `name`
   (case-insensitive), or `None` if there is no such row.
+- `problems()` → `list[str]` — structural problems found in the parse (duplicate
+  parameter names, duplicate configuration names, parameters that are not valid
+  identifiers; empty = OK). `Table.validate()` and `ConfigRef` derive their
+  status from this, so validation costs no extra reads of the spreadsheet.
 
 ## `freecad.spreadsheetplus.master_sheet`
 
@@ -124,6 +128,16 @@ Object properties:
 - `ConfigurationValid` / `ConfigurationError` — read-only status properties
   (visible in the property editor) reporting whether the selected
   configuration resolves.
+- `TableValid` / `TableErrors` — read-only status properties reporting whether
+  the linked master table is structurally sound: `TableErrors` collects the
+  `TableSnapshot.problems()` of the master plus any parameter whose name
+  collides with an existing property (such a column cannot be exposed and would
+  otherwise be dropped silently). Both are set when the reference recomputes;
+  with no master linked they read `False` / `"No master spreadsheet linked"`.
+
+The view provider turns either failure into a tree signal: the reference is
+shown with a warning icon (`spreadsheetplus-config-warning.svg`) instead of the
+normal one whenever `ConfigurationValid` or `TableValid` is false.
 
 The proxy is type-agnostic: it drives `Part::Part2DObjectPython` objects created
 by this version as well as the `App::FeaturePython` objects written by version

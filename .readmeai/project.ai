@@ -55,9 +55,14 @@ which has the same coupling.
   type `Body::isAllowed()` accepts.
 - **Caching.** `Table.snapshot()` memoises the parsed table by raw cell content,
   so several ConfigRefs sharing one master parse it once.
-- **Validation.** `MasterSheet.validate()` / `Table.validate()` report table
-  problems (duplicate names, invalid parameter names); a ConfigRef reports
-  `ConfigurationValid` / `ConfigurationError` in the property editor.
+- **Validation.** `TableSnapshot.problems()` (via `MasterSheet.validate()` /
+  `Table.validate()`) reports structural table problems (duplicate parameter
+  names, duplicate configuration names, invalid identifier names). Every
+  ConfigRef surfaces both scopes in the property editor: `ConfigurationValid` /
+  `ConfigurationError` for its own row, `TableValid` / `TableErrors` for the
+  master table (including parameters whose name collides with an existing
+  property and can therefore not be exposed). A failure also switches the tree
+  icon to `spreadsheetplus-config-warning.svg`.
 - **The sheet is edited directly.** There is no custom table editor — the
   `MasterSheet` is a plain `Spreadsheet::Sheet` edited in FreeCAD's own
   spreadsheet editor.
@@ -215,6 +220,15 @@ submission. Test suites are green: **25 headless** and **15 GUI** (`test_gui` 4 
 - Removed the unused `sheet.py` (`Sheet` wrapper) and `tests/test_sheet.py`;
   `master_sheet.py`/`table.py` wrap `Spreadsheet::Sheet` directly (25 headless
   tests total).
+- Validation surfacing: moved the structural check onto the cached snapshot
+  (`TableSnapshot.problems()`, `Table.validate()` delegates to it) and added
+  `TableValid` / `TableErrors` to ConfigRef, computed from the snapshot plus the
+  property-name collisions `validate()` cannot see. `ConfigRefViewProvider`
+  shows `spreadsheetplus-config-warning.svg` while either status is false, and
+  `ConfigRef._refresh_icon()` calls `signalChangeIcon()` when it changes.
+  `_sync_properties` now skips a duplicated parameter name (first column wins)
+  instead of exposing the same property twice. Docs updated (`docs/api.md`,
+  `docs/usage.md`, `CHANGELOG.md`). Full suite green: 27 headless + 15 GUI.
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons

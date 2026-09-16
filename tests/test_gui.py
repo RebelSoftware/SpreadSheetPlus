@@ -35,6 +35,7 @@ def test_commands_installed():
 def test_config_ref_view_provider():
     from freecad.spreadsheetplus.master_sheet import MasterSheet
     from freecad.spreadsheetplus.config_ref import create as create_config_ref
+    from freecad.spreadsheetplus.resources import Resources
     from freecad.spreadsheetplus.view_providers import ConfigRefViewProvider
 
     doc = FreeCAD.newDocument("GuiTest")
@@ -47,6 +48,31 @@ def test_config_ref_view_provider():
         ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
         assert isinstance(ref.ViewObject.Proxy, ConfigRefViewProvider)
         assert ref.Length == 80
+
+        # a healthy reference shows the normal tree icon
+        assert ref.ViewObject.Proxy.getIcon() == Resources.icon(
+            "spreadsheetplus-config.svg"
+        )
+
+        # an unresolvable configuration switches it to the warning icon
+        ref.Configuration = "Nope"
+        doc.recompute()
+        assert ref.ViewObject.Proxy.getIcon() == Resources.icon(
+            "spreadsheetplus-config-warning.svg"
+        )
+
+        ref.Configuration = "TypeA"
+        doc.recompute()
+        assert ref.ViewObject.Proxy.getIcon() == Resources.icon(
+            "spreadsheetplus-config.svg"
+        )
+
+        # a broken master link is a warning too
+        ref.Master = None
+        doc.recompute()
+        assert ref.ViewObject.Proxy.getIcon() == Resources.icon(
+            "spreadsheetplus-config-warning.svg"
+        )
     finally:
         FreeCAD.closeDocument("GuiTest")
 

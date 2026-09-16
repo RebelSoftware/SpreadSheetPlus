@@ -57,6 +57,15 @@ _HIDDEN_BASE_PROPERTIES = (
     "ShapeMaterial",
 )
 
+#: Read-only status properties, kept visible in the property editor so the
+#: problem is discoverable and not just in a console warning.
+_STATUS_PROPERTIES = (
+    "ConfigurationValid",
+    "ConfigurationError",
+    "TableValid",
+    "TableErrors",
+)
+
 # FreeCAD unit-type name -> property class for quantity columns. Unmapped unit
 # types fall back to App::PropertyString (the value is stored as text).
 _QUANTITY_PROPERTY_BY_TYPE = {
@@ -225,6 +234,22 @@ class ConfigRef:
                 "Error message when the configuration cannot be resolved",
                 read_only=True,
             )
+        if not hasattr(obj, "TableValid"):
+            obj.addProperty(
+                "App::PropertyBool",
+                "TableValid",
+                GROUP,
+                "Whether the master configuration table is structurally valid",
+                read_only=True,
+            )
+        if not hasattr(obj, "TableErrors"):
+            obj.addProperty(
+                "App::PropertyString",
+                "TableErrors",
+                GROUP,
+                "Structural problems found in the master configuration table",
+                read_only=True,
+            )
         obj.Proxy = self
         self._syncing = False
         _hide_inherited_properties(obj)
@@ -253,6 +278,7 @@ class ConfigRef:
         table = self._table(obj)
         if table is None:
             self._set_status(obj, "No master spreadsheet linked", False)
+            self._set_table_status(obj, ["No master spreadsheet linked"])
             return
         snapshot = table.snapshot()
         self._syncing = True
@@ -262,6 +288,7 @@ class ConfigRef:
         finally:
             self._syncing = False
         self._update_status(obj, snapshot)
+        self._update_table_status(obj, snapshot, managed)
 
     def _sync_properties(self, obj, snapshot) -> list[str]:
         managed = list(obj.ManagedParameters)
@@ -278,6 +305,10 @@ class ConfigRef:
 
         new_managed = []
         for name in params:
+            if name in new_managed:
+                # A duplicate parameter name makes the table invalid (reported
+                # through TableErrors); keep the first column only.
+                continue
             column = snapshot.column(name)
             inferred = infer_type(column)
             if hasattr(obj, name):
@@ -363,16 +394,72 @@ class ConfigRef:
                 valid = False
         self._set_status(obj, error, valid)
 
+    def _update_table_status(self, obj, snapshot, managed) -> None:
+        """Report structural problems in the linked master table.
+
+        Everything is derived from the cached snapshot, so this costs no extra
+        reads of the spreadsheet.
+        """
+        problems = list(snapshot.problems())
+        # A parameter whose name collides with a built-in property or a Python
+        # attribute (e.g. a column called "recompute") cannot be exposed, so
+        # _sync_properties skips it. TableSnapshot.problems() cannot see that,
+        # so report it from the set of parameters actually exposed here.
+        for name in snapshot.params:
+            if name not in managed and hasattr(obj, name):
+                problems.append(
+                    f"parameter name collides with an existing property: {name!r}"
+                )
+        self._set_table_status(obj, problems)
+
     def _set_status(self, obj, error: str, valid: bool) -> None:
-        if obj.ConfigurationValid != valid:
+        changed = obj.ConfigurationValid != valid
+        if changed:
             obj.ConfigurationValid = valid
         if obj.ConfigurationError != error:
             obj.ConfigurationError = error
+            changed = True
         # Keep the status visible and read-only in the property editor (also
         # migrates properties created as hidden in older documents).
-        for name in ("ConfigurationValid", "ConfigurationError"):
+        self._set_editor_modes(obj)
+        if changed:
+            self._refresh_icon(obj)
+
+    def _set_table_status(self, obj, problems) -> None:
+        valid = not problems
+        message = "\n".join(problems)
+        changed = obj.TableValid != valid
+        if changed:
+            obj.TableValid = valid
+        if obj.TableErrors != message:
+            obj.TableErrors = message
+            changed = True
+        self._set_editor_modes(obj)
+        if changed:
+            self._refresh_icon(obj)
+
+    @staticmethod
+    def _set_editor_modes(obj) -> None:
+        for name in _STATUS_PROPERTIES:
             if obj.getEditorMode(name) != ["ReadOnly"]:
                 obj.setEditorMode(name, 1)
+
+    @staticmethod
+    def _refresh_icon(obj) -> None:
+        """Ask the tree to re-read the icon after a validity change.
+
+        The view provider picks its icon from the status properties, so the
+        tree has to be told that they changed.
+        """
+        if not App.GuiUp:
+            return
+        view = getattr(obj, "ViewObject", None)
+        if view is None:
+            return
+        try:
+            view.signalChangeIcon()
+        except Exception:
+            pass
 
 
 def create(doc, master, configuration: str, name: str = "ConfigRef"):

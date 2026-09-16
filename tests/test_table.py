@@ -61,6 +61,40 @@ def test_write_and_read():
         FreeCAD.closeDocument("TableTest")
 
 
+def test_validate_reports_problems():
+    doc = FreeCAD.newDocument("TableTestValidate")
+    try:
+        sheet = doc.addObject("Spreadsheet::Sheet", "MasterSheet")
+        table = Table(sheet)
+        table.add_parameter("Length")
+        table.add_parameter("Width")
+        table.add_configuration("TypeA")
+        assert table.validate() == []
+
+        # a second column reusing an existing header name
+        table.add_parameter("Depth")
+        sheet.set("D2", "Length")
+        sheet.recompute()
+        assert table.validate() == ["duplicate parameter names"]
+
+        # duplicate configuration names, case-insensitively
+        sheet.set("D2", "Depth")
+        sheet.set("A4", "typea")
+        sheet.recompute()
+        assert table.validate() == ["duplicate configuration names (case-insensitive)"]
+
+        # a header that is not a Python identifier cannot become a property
+        sheet.set("A4", "")
+        sheet.set("D2", "my param")
+        sheet.recompute()
+        assert table.validate() == [
+            "parameter name is not a valid identifier: 'my param'"
+        ]
+    finally:
+        save_document(doc, "table_validate_problems")
+        FreeCAD.closeDocument("TableTestValidate")
+
+
 def test_add_remove():
     doc = FreeCAD.newDocument("TableTest2")
     try:

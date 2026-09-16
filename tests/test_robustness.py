@@ -63,11 +63,15 @@ def test_broken_link_is_flagged():
         ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
         doc.recompute()
         assert ref.ConfigurationValid is True
+        assert ref.TableValid is True
+        assert ref.TableErrors == ""
 
         ref.Master = None
         doc.recompute()
         assert ref.ConfigurationValid is False
         assert ref.ConfigurationError == "No master spreadsheet linked"
+        assert ref.TableValid is False
+        assert ref.TableErrors == "No master spreadsheet linked"
     finally:
         save_document(doc, "robustness_broken")
         FreeCAD.closeDocument("RobustBroken")
@@ -90,9 +94,44 @@ def test_parameter_named_like_method():
         # "recompute" collides with an object method; it must not be exposed
         # as a managed property (exposing it would clobber the method).
         assert ref.ManagedParameters == ["Length"]
+        # ... and the skipped column has to be reported, not silently dropped
+        assert ref.TableValid is False
+        assert "collides with an existing property: 'recompute'" in ref.TableErrors
     finally:
         save_document(doc, "robustness_names")
         FreeCAD.closeDocument("RobustNames")
+
+
+def test_table_problems_are_reported():
+    doc = FreeCAD.newDocument("RobustTable")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+        assert ref.TableValid is True
+        assert ref.TableErrors == ""
+
+        # a second column reusing an existing header name makes the table
+        # invalid; the reference itself keeps working, first column wins
+        master.add_parameter("Depth")
+        master.sheet.set("D2", "Width")
+        master.sheet.recompute()
+        doc.recompute()
+        assert ref.TableValid is False
+        assert ref.TableErrors == "duplicate parameter names"
+        assert ref.ManagedParameters == ["Length", "Width"]
+        assert ref.Length == 80
+
+        # fixing the header clears the problem again (and re-exposes Depth)
+        master.sheet.set("D2", "Depth")
+        master.sheet.recompute()
+        doc.recompute()
+        assert ref.TableValid is True
+        assert ref.TableErrors == ""
+        assert ref.ManagedParameters == ["Length", "Width", "Depth"]
+    finally:
+        save_document(doc, "robustness_table")
+        FreeCAD.closeDocument("RobustTable")
 
 
 def main():

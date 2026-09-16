@@ -20,9 +20,13 @@ After loading the workbench, a **SpreadSheet Plus** toolbar and menu appear:
 | Switch Configuration | Switch the selected `ConfigRef` to another configuration row. |
 
 The `MasterSheet` is a plain `Spreadsheet::Sheet`, so you edit the table itself
-in FreeCAD's normal spreadsheet editor. `MasterSheet.validate()` reports table
-problems (duplicate names, invalid parameter names) if you want to check one
-programmatically.
+in FreeCAD's normal spreadsheet editor. Table problems (duplicate names, invalid
+parameter names) are reported in two places: `MasterSheet.validate()` when you
+want to check programmatically, and on every `ConfigRef` that links to the table
+— `TableValid` is `False`, `TableErrors` names the problems, and the reference
+gets a warning icon in the tree. A reference whose own configuration no longer
+resolves is flagged the same way through `ConfigurationValid` /
+`ConfigurationError`.
 
 **Create ConfigRef** follows FreeCAD's container convention: if a Part container
 or a PartDesign Body is *active* (double-click it in the tree so its label is

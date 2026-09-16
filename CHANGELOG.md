@@ -5,6 +5,19 @@ ISO 8601 (`YYYY-MM-DD`).
 
 ## [Unreleased]
 
+**Added**
+- Validation is now surfaced on the part, not just in the API. A `ConfigRef`
+  carries two read-only status properties, `TableValid` and `TableErrors`, that
+  report structural problems in the linked master table (duplicate parameter
+  names, duplicate configuration names, parameters that are not valid
+  identifiers, and parameters whose name collides with an existing property and
+  can therefore not be exposed). The reference's tree icon changes to a warning
+  icon while `ConfigurationValid` or `TableValid` is false, so a broken part is
+  visible without opening the property editor.
+- `TableSnapshot.problems()` — the structural check as a method on the parsed
+  snapshot. `Table.validate()` now delegates to it, so both the master sheet and
+  every `ConfigRef` report the same problems from the same cached parse.
+
 **Fixed**
 - A `ConfigRef` can now be moved (dragged) into any container, including a
   `PartDesign::Body`, not just a `Part` or a Std group. New references are
