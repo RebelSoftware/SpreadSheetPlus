@@ -114,6 +114,9 @@ which has the same coupling.
 - `freecad/spreadsheetplus/resources/` — icons, translations, `Resources` manager
 - `tests/` — dependency-free FreeCAD test scripts + `run_freecad_gui.sh`
 - `docs/` — `usage.md`, `api.md`, `development.md`, `publishing.md`
+- `examples/` — `build_demo.py` (builds the git-ignored demo document), the demo
+  document `SpreadSheetPlus-demo.FCStd` (a bolt family: one table, two parts, two
+  variants) and `README.md` (guided tour)
 
 ## Install / dev loop
 - Dev (no install): `<freecad> -M <repo-root>`
@@ -170,6 +173,8 @@ The detailed technical plan, table convention and decision log live in
   `QT_QPA_PLATFORM=xcb` trap + `tests/run_freecad_gui.sh`), VS Code tasks, how to
   read FreeCAD's behaviour from the local source checkout.
 - `docs/publishing.md` — release checklist + FreeCAD Addon Index submission.
+- `examples/README.md` — guided tour of the example document (what to click,
+  what to try, and the two FreeCAD copy-on-change notes).
 - `README.md` (user-facing install/dev), `CHANGELOG.md` (release notes),
   `PLAN.md` (roadmap + decision log), `AGENTS.md` (agent instructions).
 - Convention: each phase ships its docs in the same commit.
@@ -289,6 +294,31 @@ submission. Test suites are green: **44 headless** (incl. 15 variants) and
   (`variants.variant_links`, `config_ref.row_selector`), with a contract test
   (`test_a_part_side_switch_never_creates_a_variant`) and explicit docs. Suite:
   44 headless + 17 GUI.
+- **Worked example** (`examples/`): `build_demo.py` builds
+  `SpreadSheetPlus-demo.FCStd`, a bolt family that shows the whole story - a table
+  with unit-bearing length columns, a text and a bool column; a PartDesign part
+  driven by its own `ConfigRef`, where the bool switches the head between a hex
+  block and a socket cylinder (`Suppressed` expressions; FreeCAD has no "not", so
+  the block compares with `False`); a second part reading the same table with its
+  own row; and two `App::Link` variants that keep their own rows. Verified by
+  reopening the file (table valid, every row's values, part volumes, Body tips,
+  variant independence, view state). Documented in `examples/README.md`, linked
+  from `README.md` and `docs/usage.md`.
+- **Master sheets are never copied into variants** (`master_sheet.keep_shared()`),
+  so the workbench does what it says: making an `App::Link` variant copies the
+  part but not the table, and every part - variant included - keeps reading the
+  one master. The marker is FreeCAD's own copy-on-change exclude control
+  (`LinkBaseExtension::getOnChangeCopyObjects()` reads the `_CopyOnChangeControl`
+  `App::PropertyMap`; `"-"` under the key `"*"` means "not in the copy" - the
+  storage behind the C++-only `setOnChangeCopyObject(obj, Exclude | ApplyAll)`,
+  present in 1.0.0, 1.1.3 and main). Set on `MasterSheet.create()` and re-asserted
+  by every `ConfigRef` sync, so older documents are migrated; only same-document
+  masters need it (FreeCAD already excludes external objects, and another
+  document's sheet is not ours to modify). Tests: the marker itself, and
+  `test_a_variant_never_copies_the_master_table` (one sheet after making a
+  variant, the copy reads the master, master edits reach the variant while each
+  keeps its own row) plus the reload case. Full suite green: 46 headless +
+  17 GUI.
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons

@@ -254,6 +254,25 @@ Example:
    un-diverged link into an independent copy and still change the part's own row,
    destroying "edit once, all variants follow".
 
+7. **A variant must not copy the master sheet.** FreeCAD's copy-on-change copies
+   the linked part *and the objects it depends on*, and a `ConfigRef`'s `Master`
+   reference puts the master sheet in that set: the variant read a snapshot of
+   the table, so later master edits never reached it - the coupling this project
+   exists to remove (measured: `BoltM6x30` read `BoltTable001`). The fix uses
+   FreeCAD's own control for this instead of changing how the reference is stored:
+   objects whose `_CopyOnChangeControl` `App::PropertyMap` says `"-"` are dropped
+   from the copied set (`LinkBaseExtension::getOnChangeCopyObjects()`, the storage
+   behind the C++-only `setOnChangeCopyObject(obj, OnChangeCopyOptions::Exclude |
+   ApplyAll)`). `master_sheet.keep_shared()` writes that map - hidden, key `"*"` so
+   it holds for every link - on `MasterSheet.create()` and on every `ConfigRef`
+   sync. Verified with the reference left as `App::PropertyXLink`: one sheet after
+   making a variant, the copied reference pointing at the master, master edits
+   reaching template *and* variant while each keeps its own row, and the marker
+   surviving save/reload. Keeping the XLink matters: switching to a hidden-scope
+   link (`LinkScope::Hidden`) would exclude the sheet too, but it also removes the
+   recompute dependency, so the parts would stop following the table. Manual
+   copies are a separate path (the copy dialogue decides what comes along).
+
 ### Remaining open (can decide later)
 - Whether `MasterSheet` wraps an existing `Spreadsheet::Sheet` or owns its own.
 

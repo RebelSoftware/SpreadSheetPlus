@@ -15,6 +15,7 @@ import traceback
 
 import FreeCAD
 
+from freecad.spreadsheetplus import master_sheet
 from freecad.spreadsheetplus.config_ref import ConfigRef
 from freecad.spreadsheetplus.config_ref import create as create_config_ref
 from freecad.spreadsheetplus.config_ref import row_selector, switch_configuration
@@ -352,6 +353,14 @@ def test_selectors_and_variants_survive_a_reopen():
         assert ref2.Configuration == "short"
         assert ref2.Length == 20
 
+        # the marker that keeps the tables shared survives the reload too, so
+        # the variants are still driven by the master rather than a snapshot
+        tables = sorted(o.Name for o in reopened.Objects if o.TypeId == "Spreadsheet::Sheet")
+        assert tables == ["Heads", "Lengths"], tables
+        for name in tables:
+            control = getattr(reopened.getObject(name), master_sheet.COPY_CONTROL_PROPERTY)
+            assert control.get("*") == master_sheet.COPY_CONTROL_EXCLUDE, name
+
         # the variant kept its own row, and can still switch
         variant = reopened.getObject("Bolt1")
         assert variant.BoltLength == "long"
@@ -361,6 +370,85 @@ def test_selectors_and_variants_survive_a_reopen():
     finally:
         _close(doc)
         _close(reopened)
+
+
+def test_a_variant_never_copies_the_master_table():
+    """The point of the workbench: the table stays shared, not snapshotted.
+
+    Making a variant deep-copies the part *and everything it depends on*, which
+    used to include the master sheet: the copy's ConfigRef read `Lengths001`, a
+    snapshot taken when the variant was created, so later edits at the master
+    never reached the variant. `master_sheet.keep_shared()` now marks the sheet
+    with FreeCAD's copy-on-change exclude control, so the copied reference keeps
+    pointing at the master.
+    """
+    doc = FreeCAD.newDocument("VariantSharedTable")
+    try:
+        body, shank, head, box = _bolt(doc)
+        link = doc.addObject("App::Link", "Bolt1")
+        link.LinkedObject = body
+        link.LinkCopyOnChange = "Enabled"
+        doc.recompute()
+        link.BoltLength = "long"
+        doc.recompute()
+
+        # the variant was copied, the tables were not
+        copy = link.LinkedObject
+        assert copy is not body
+        tables = sorted(o.Name for o in doc.Objects if o.TypeId == "Spreadsheet::Sheet")
+        assert tables == ["Heads", "Lengths"], tables
+
+        # ...so the copy reads the shared master, and still keeps its own row
+        copied = _config_refs(copy)
+        assert copied["BoltLength"].Master is shank.Master
+        assert copied["BoltLength"].Configuration == "long"
+        assert copied["BoltLength"].Length == 50
+        assert shank.Configuration == "short"
+
+        # editing the master now reaches the variant as well
+        MasterSheet(shank.Master).set_value("long", "Length", 60)
+        MasterSheet(head.Master).set_value("button", "Diameter", 9)
+        doc.recompute()
+        assert copied["BoltLength"].Length == 60
+        assert copied["HeadStyle"].Diameter == 9
+        assert copy.Shape.Volume > 0
+
+        # the template keeps its own row and reads the same shared master
+        assert shank.Configuration == "short"
+        assert shank.Length == 20  # row 'short' was not touched
+        assert head.Configuration == "button"
+        assert head.Diameter == 9  # the master edit reaches it as well
+    finally:
+        save_document(doc, "variants_shared_table")
+        FreeCAD.closeDocument("VariantSharedTable")
+
+
+def test_master_sheets_are_marked_as_shared():
+    doc = FreeCAD.newDocument("VariantSharedFlag")
+    try:
+        lengths = _master(doc, "Lengths", "Length", {"short": 20, "long": 50})
+        sheet = lengths.sheet
+
+        # a new master carries FreeCAD's copy-on-change exclude control, hidden
+        control = getattr(sheet, master_sheet.COPY_CONTROL_PROPERTY)
+        assert control.get("*") == master_sheet.COPY_CONTROL_EXCLUDE
+        assert "Hidden" in sheet.getEditorMode(master_sheet.COPY_CONTROL_PROPERTY)
+
+        # a sheet written before the marker existed gets it on the next recompute
+        sheet.removeProperty(master_sheet.COPY_CONTROL_PROPERTY)
+        ref = create_config_ref(doc, sheet, "short", name="ConfigRefA")
+        doc.recompute()
+        assert (
+            getattr(sheet, master_sheet.COPY_CONTROL_PROPERTY).get("*")
+            == master_sheet.COPY_CONTROL_EXCLUDE
+        )
+
+        # marking is idempotent, and a master in another document is left alone
+        assert master_sheet.keep_shared(sheet) is True
+        assert ref.Length == 20
+    finally:
+        save_document(doc, "variants_shared_flag")
+        FreeCAD.closeDocument("VariantSharedFlag")
 
 
 def test_link_variant_picks_its_own_rows():

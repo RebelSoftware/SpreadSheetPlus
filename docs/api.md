@@ -69,11 +69,34 @@ High-level wrapper around a spreadsheet holding a configuration table.
 - `sheet` — the underlying `Spreadsheet::Sheet`.
 - `table` — the underlying `Table`.
 - `create(doc=None, name="MasterSheet", title="")` → `MasterSheet` — create a
-  sheet at document level.
+  sheet at document level, marked as shared (see `keep_shared()`).
 
 Delegates to `table`: `title`, `set_title`, `parameters`, `configurations`,
 `get_value`, `set_value`, `get_row`, `add_configuration`, `remove_configuration`,
 `add_parameter`, `remove_parameter`, `validate`.
+
+### `keep_shared(sheet)` → bool
+
+Mark *sheet* so FreeCAD leaves it out of the copy it makes for a copy-on-change
+part variant, and return whether the sheet now carries the marker (idempotent,
+never raises). A variant otherwise deep-copies the part *and its dependencies*,
+which includes the master sheet - the variant would then read a frozen snapshot
+and later edits at the master would never reach it, which is the coupling the
+workbench exists to remove. `MasterSheet.create()` calls this, and every
+`ConfigRef` sync re-asserts it for same-document masters, so documents written
+before it existed are migrated on their next recompute; a master in *another*
+document is left alone (FreeCAD already excludes external objects from the copy,
+and that sheet is not ours to modify).
+
+Mechanism: FreeCAD's copy-on-change drops every object whose
+`_CopyOnChangeControl` `App::PropertyMap` says `"-"`
+(`LinkBaseExtension::getOnChangeCopyObjects()`), which is the storage behind the
+C++-only `setOnChangeCopyObject(obj, OnChangeCopyOptions::Exclude | ApplyAll)` -
+present in FreeCAD 1.0.0, 1.1.3 and `main`. Constants: `COPY_CONTROL_PROPERTY`
+(`_CopyOnChangeControl`), `COPY_CONTROL_GROUP` (`MasterSheet`),
+`COPY_CONTROL_EXCLUDE` (`-`). A test asserts the sheet count after making a
+variant, so a FreeCAD release that renames the map fails loudly instead of
+silently re-coupling the tables.
 
 ## `freecad.spreadsheetplus.config_ref`
 

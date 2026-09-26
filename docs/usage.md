@@ -9,6 +9,10 @@ many parts share it. Each part links to the spreadsheet and selects one row (a
 > must be installed/symlinked into `Mod/` or launched with `-M <repo>` so
 > `freecad.spreadsheetplus` is importable.
 
+> **Try it first.** `examples/build_demo.py` builds a small bolt family that shows
+> all of this - one table, two parts, two variants - and `examples/README.md` is a
+> guided tour of the result.
+
 ## Using the GUI
 
 After loading the workbench, a **SpreadSheet Plus** toolbar and menu appear:
@@ -73,8 +77,13 @@ never silently re-pointed. The selectors carry FreeCAD's
    independent variant with its own rows.
 
 One template plus a handful of links gives you as many variants as you like, all
-still driven by the same master tables - edit a row in a master and every part
-using that row follows.
+of them still driven by the same master table. FreeCAD's copy-on-change copies
+the linked part *and the objects it depends on* - and a `ConfigRef` depends on its
+master sheet - so SpreadSheetPlus marks every master sheet as **shared**: the
+sheet is left out of the copy, the variant's reference keeps pointing at the
+master, and editing a row still reaches every part, variant or not. (A manual
+*copy* of a part is a different thing, and there the copy dialogue decides what
+comes along.)
 
 **A variant's own row is set on the link, and only there.** FreeCAD deliberately
 *syncs* a copy-on-change link's mirrored property from the part whenever the part

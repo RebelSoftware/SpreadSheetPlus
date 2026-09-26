@@ -27,6 +27,7 @@ import os
 
 import FreeCAD as App
 
+from .master_sheet import keep_shared
 from .table import EMPTY, EXPRESSION, NUMBER, QUANTITY, STRING, Table
 
 GROUP = "ConfigRef"
@@ -373,6 +374,7 @@ class ConfigRef:
     def _sync(self, obj) -> None:
         if self._syncing:
             return
+        self._share_master(obj)
         table = self._table(obj)
         snapshot = table.snapshot() if table is not None else None
         problems = self._apply_container_row(
@@ -391,6 +393,21 @@ class ConfigRef:
             self._syncing = False
         self._update_status(obj, snapshot, problems)
         self._update_table_status(obj, snapshot, managed)
+
+    def _share_master(self, obj) -> None:
+        """Keep the master sheet out of variant copies (`master_sheet.keep_shared`).
+
+        A variant deep-copies the part *and its dependencies*, so without the
+        marker the copied reference reads a snapshot of the table instead of the
+        shared master (see `MasterSheet.keep_shared`). Only a same-document
+        master needs it: FreeCAD already leaves objects from other documents out
+        of a copy-on-change copy, and a sheet in another file is not ours to
+        modify anyway.
+        """
+        master = obj.Master
+        if master is None or getattr(master, "Document", None) is not obj.Document:
+            return
+        keep_shared(master)
 
     def _apply_container_row(self, obj, configurations=()) -> list[str]:
         """Adopt the row selected on the part, when the part owns a selector.

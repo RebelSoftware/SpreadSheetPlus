@@ -6,6 +6,15 @@ ISO 8601 (`YYYY-MM-DD`).
 ## [Unreleased]
 
 **Added**
+- **A worked example.** `examples/build_demo.py` generates a bolt family: one
+  configuration table, two parts reading it (each with its own row) and two
+  `App::Link` variants, with a guided tour in `examples/README.md`. It is ~100
+  lines of API calls that double as sample code (the generated
+  `SpreadSheetPlus-demo.FCStd` is not committed - run the script), and it
+  exercises the whole story: unit-bearing cells inferred as
+  `App::PropertyLength`, a text column and a bool column (the bool switches the
+  head between a hex block and a socket cylinder), a second part driven by its own
+  `ConfigRef`, and variants that keep their own rows.
 - **Picking a configuration instead of typing one.** The `Configuration`
   property of a `ConfigRef` now carries FreeCAD's `UserEdit` status: the property
   editor shows an edit button next to it, and clicking it opens the same sorted,
@@ -65,7 +74,7 @@ ISO 8601 (`YYYY-MM-DD`).
   written before the group existed are migrated on the next recompute.
 
 **Fixed**
-- A `ConfigRef` can now be moved (dragged) into any container, including a
+- **A `ConfigRef` can now be moved (dragged) into any container**, including a
   `PartDesign::Body`, not just a `Part` or a Std group. New references are
   created as `Part::Part2DObjectPython`, the only Python-extensible type a Body
   accepts (`PartDesign::Body::isAllowed()`); a plain `App::FeaturePython` was
@@ -75,11 +84,28 @@ ISO 8601 (`YYYY-MM-DD`).
 - **Create ConfigRef** now creates the reference inside the *active* container
   (the active `PartDesign::Body`, else the active `Part`) as FreeCAD's own
   object commands do; with no active container it stays at the document root.
+- **A variant no longer snapshots the master table.** FreeCAD's copy-on-change
+  copies the linked part *and the objects it depends on*, and the master sheet was
+  one of them: the variant read its own `BoltTable001`, and later edits at the
+  master never reached it - the exact coupling this workbench exists to remove.
+  `master_sheet.keep_shared()` now marks every master sheet with FreeCAD's
+  copy-on-change exclude control (the `_CopyOnChangeControl` `App::PropertyMap`
+  behind the C++-only `setOnChangeCopyObject(obj, Exclude | ApplyAll)`), so the
+  sheet is left out of the copy and the variant's reference keeps pointing at the
+  master. The reference itself stays an `App::PropertyXLink`, so recompute
+  propagation, cross-file masters and expressions are unchanged. Applied by
+  `MasterSheet.create()` and re-asserted by every `ConfigRef` sync (older
+  documents migrate on their next recompute); same-document masters only, since
+  FreeCAD already excludes objects from other documents.
 - `convert_to_container_type(obj)` upgrades a reference created by 0.1 in place,
   preserving its label, master sheet, configuration, parameters, container and
   the expressions that use it.
 
 **Docs**
+- Described how variants relate to the shared table in `docs/usage.md` and
+  `examples/README.md`: the table is marked as shared so it is not copied into a
+  variant (`master_sheet.keep_shared()`), while a variant's *row* is set on the
+  link.
 - New usage section on placing a `ConfigRef` inside a part/body, and on
   upgrading references from 0.1.
 - Corrected expression examples: `<<Name>>.Property` in FreeCAD expression

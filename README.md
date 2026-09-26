@@ -53,6 +53,8 @@ The importable package is `freecad.spreadsheetplus` (module `spreadsheetplus`).
 ## Documentation
 
 - [Usage guide](docs/usage.md) — how to use the workbench (scripting workflow)
+- [Example document](examples/README.md) — build and explore a small
+  configured-part document (a bolt family: one table, two parts, two variants)
 - [API reference](docs/api.md) — `Table`, `MasterSheet`, `ConfigRef`
 - [Development environment](docs/development.md) — running FreeCAD and the tests
   (headless GUI runs, VS Code tasks, where to find FreeCAD's behaviour)
