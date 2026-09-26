@@ -15,6 +15,12 @@ copy's own children are not re-executed, and no object inside the part may depen
 on the part itself (that is a DAG cycle FreeCAD refuses). A document observer is
 the only hook that sees that paste, and it is what makes the copy re-read its
 rows - see :class:`VariantObserver`.
+
+A variant is created by changing *the link's* mirrored property, never by
+changing the part: FreeCAD's `LinkBaseExtension::setupCopyOnChange` connects to
+the source's properties and pastes each change into the link's mirror with the
+copy trigger suppressed. `variant_links()` reports the links a part-side change
+therefore reaches without copying, so the GUI can say so.
 """
 
 from __future__ import annotations
@@ -26,6 +32,7 @@ from .config_ref import (
     ConfigRef,
     _config_refs_in,
     _registered_slots,
+    _store_slot_value,
     parent_group,
     slot_name,
 )
@@ -75,8 +82,38 @@ class VariantObserver:
         name = slot_name(obj)
         if name not in _registered_slots(container):
             return
-        if getattr(container, name) != obj.Configuration:
-            setattr(container, name, obj.Configuration)
+        if getattr(container, name, None) != obj.Configuration:
+            _store_slot_value(container, name, obj.Configuration)
+
+
+def variant_links(source, name: str) -> list:
+    """The links that would make an independent variant if *name* changed.
+
+    These are the links that still follow *source* (they have not diverged into
+    a copy yet) and mirror *name* with the ``CopyOnChange`` status. FreeCAD
+    copies the source into an independent object as soon as one of *their*
+    mirrored properties changes, so this is the set to point a user at when a row
+    is switched on the part itself: FreeCAD deliberately syncs such a change into
+    the mirrors instead, which is why a part-side switch updates every link that
+    follows the part and never creates a variant.
+
+    Returns an empty list for a source that has no such links.
+    """
+    doc = getattr(source, "Document", None)
+    found = []
+    for candidate in getattr(doc, "Objects", ()):
+        # A copy-on-change link points at the source until it diverges; after
+        # that its mirrored properties are its own rows, not the part's.
+        if getattr(candidate, "LinkedObject", None) is not source:
+            continue
+        if name not in candidate.PropertiesList:
+            continue
+        try:
+            if "CopyOnChange" in candidate.getPropertyStatus(name):
+                found.append(candidate)
+        except Exception:
+            continue
+    return found
 
 
 def attach() -> None:

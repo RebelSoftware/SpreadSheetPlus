@@ -50,7 +50,23 @@ which has the same coupling.
   "Failed to convert to Quantity").
 - **Configuration names are case-insensitive** (`TypeA` == `typea`); Switch
   configuration lists them sorted with a case-insensitive type-to-search filter.
-- **Containers.** A ConfigRef can live in a `Part`, a `PartDesign::Body` or a
+- **A configuration is picked, never typed.** The ConfigRef's `Configuration`
+  field carries FreeCAD's `UserEdit` status, so the property editor gives it an
+  edit button that opens the picker dialog (`ConfigRef.editProperty` →
+  `dialogs.select_configuration.choose_configuration`, shared with the Switch
+  Configuration command). The part's own selector is an `App::PropertyEnumeration`
+  of the master's rows, i.e. a drop-down - a Body is a C++ object, and FreeCAD's
+  `editProperty` hook only reaches *Python* objects, so a dialog is impossible
+  there (a drop-down is what FreeCAD's built-in configuration table does too).- **A variant's row is set on the link, never on the part.** FreeCAD copies a
+  copy-on-change link only when one of the link's *own* mirrored properties
+  changes; a change on the part is synced into the mirror with the copy trigger
+  suppressed (`LinkBaseExtension::setupCopyOnChange`, `Property::User3`). So a
+  part-side switch follows the part in every link that still follows it, and
+  copies nothing (verified against FreeCAD 1.1.3, and identical before/after the
+  picking work - not a regression). The picker reports the links it reached
+  (`variants.variant_links`) and points at the link's own property;
+  `config_ref.row_selector` names what a switch writes. Pinned by
+  `tests/test_variants.py::test_a_part_side_switch_never_creates_a_variant`.- **Containers.** A ConfigRef can live in a `Part`, a `PartDesign::Body` or a
   group — it is created as `Part::Part2DObjectPython`, the only Python-extensible
   type `Body::isAllowed()` accepts.
 - **Caching.** `Table.snapshot()` memoises the parsed table by raw cell content,
@@ -162,8 +178,8 @@ The detailed technical plan, table convention and decision log live in
 
 **Status:** feature-complete — Phase 0–4 plus the pre-publish container/rename
 work are done; the only remaining item is the manual FreeCAD Addon Index
-submission. Test suites are green: **25 headless** and **15 GUI** (`test_gui` 4 +
-`test_container` 11).
+submission. Test suites are green: **44 headless** (incl. 15 variants) and
+**17 GUI** (`test_gui` 6 + `test_container` 11).
 
 ### Completed
 
@@ -254,6 +270,25 @@ submission. Test suites are green: **25 headless** and **15 GUI** (`test_gui` 4 
   mode untouched) so documents written earlier are migrated on recompute. Docs
   updated (`docs/api.md`, `docs/usage.md`, `CHANGELOG.md`). Full suite green:
   28 headless + 15 GUI.
+- Configuration **picking**: the ConfigRef's `Configuration` property is marked
+  `UserEdit` and the proxy implements `editProperty()`, which opens the picker
+  dialog (FreeCAD's `PropertyItemDelegate` routes the button click to
+  `PropertyContainer::editProperty` → `FeaturePythonImp` → the proxy). The picker
+  moved into `dialogs.select_configuration.choose_configuration()`, shared by the
+  command and the hook. The part's selector is now an `App::PropertyEnumeration`
+  of the master's rows (drop-down); `_store_slot_value` keeps an unknown/empty row
+  representable instead of raising, `_convert_selector` upgrades the plain-string
+  selectors written before this (a mirrored Link follows the new type - verified),
+  and the items are refreshed per recompute from the master. `object_of(proxy)`
+  finds the object for `editProperty` (FreeCAD passes only the property name): the
+  proxy must NOT carry `__object__`, because then every FeaturePython callback is
+  called *without* the object. Tests: `test_variants` (5 new, incl. save/reopen),
+  `test_config_ref` (1 new), `test_gui` (1 new). Full suite green: 43 headless +
+  16 GUI. Follow-up (no regression found - the copy-on-change contract, see the
+  decisions section): the picker now reports the links a part-side switch reached
+  (`variants.variant_links`, `config_ref.row_selector`), with a contract test
+  (`test_a_part_side_switch_never_creates_a_variant`) and explicit docs. Suite:
+  44 headless + 17 GUI.
 
 ### Pending (roadmap)
 - Submit to the FreeCAD Addon Index (manual: open an issue on FreeCAD/Addons

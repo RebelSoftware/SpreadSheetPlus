@@ -31,8 +31,7 @@ class SwitchConfiguration:
             App.Console.PrintWarning("SpreadSheetPlus: no active document\n")
             return
 
-        from ..config_ref import ConfigRef, switch_configuration
-        from ..master_sheet import MasterSheet
+        from ..config_ref import ConfigRef
 
         ref = None
         for obj in Gui.Selection.getSelection():
@@ -48,15 +47,9 @@ class SwitchConfiguration:
             )
             return
 
-        from ..dialogs.select_configuration import SelectConfigurationDialog
+        from ..dialogs.select_configuration import choose_configuration
 
-        configs = MasterSheet(ref.Master).configurations()
-        dialog = SelectConfigurationDialog(configs, ref.Configuration, Gui.getMainWindow())
-        if dialog.exec():
-            choice = dialog.selected()
-            if choice:
-                switch_configuration(ref, choice)
-                doc.recompute()
+        choose_configuration(ref, Gui.getMainWindow())
 
     def IsActive(self) -> bool:
         return App.ActiveDocument is not None

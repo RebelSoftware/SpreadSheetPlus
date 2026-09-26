@@ -96,6 +96,102 @@ def test_select_configuration_dialog():
     dlg.close()
 
 
+def test_configuration_property_edit_hook_opens_the_picker():
+    from freecad.spreadsheetplus.config_ref import create as create_config_ref
+    from freecad.spreadsheetplus.dialogs import select_configuration
+    from freecad.spreadsheetplus.master_sheet import MasterSheet
+
+    doc = FreeCAD.newDocument("EditHook")
+    original = select_configuration.SelectConfigurationDialog
+    try:
+        master = MasterSheet.create(doc, name="MasterSheet")
+        master.add_parameter("Length")
+        for config, value in (("TypeA", 80), ("TypeB", 85)):
+            master.add_configuration(config)
+            master.set_value(config, "Length", value)
+
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+        assert ref.Length == 80
+
+        class Picking:
+            """Stands in for the modal dialog so the hook can be exercised."""
+
+            seen = []
+            choice = "TypeB"
+            accepted = True
+
+            def __init__(self, configurations, current="", parent=None):
+                Picking.seen.append((sorted(configurations), current))
+
+            def exec(self):
+                return 1 if Picking.accepted else 0
+
+            def selected(self):
+                return Picking.choice
+
+        select_configuration.SelectConfigurationDialog = Picking
+
+        # clicking the property editor's edit button routes here, and the picker
+        # gets the master's rows and the current selection
+        assert ref.Proxy.editProperty("Configuration") is True
+        assert Picking.seen == [(["TypeA", "TypeB"], "TypeA")]
+        assert ref.Configuration == "TypeB"
+        assert ref.Length == 85
+
+        # cancelling leaves the selection alone (the click was still handled)
+        Picking.accepted = False
+        Picking.choice = "TypeA"
+        assert ref.Proxy.editProperty("Configuration") is True
+        assert ref.Configuration == "TypeB"
+        assert ref.Length == 85
+    finally:
+        select_configuration.SelectConfigurationDialog = original
+        FreeCAD.closeDocument("EditHook")
+
+
+def test_switch_reports_the_links_that_follow_the_part():
+    from freecad.spreadsheetplus.config_ref import create as create_config_ref
+    from freecad.spreadsheetplus.dialogs.select_configuration import _following_link_hint
+    from freecad.spreadsheetplus.master_sheet import MasterSheet
+
+    doc = FreeCAD.newDocument("LinkHint")
+    try:
+        master = MasterSheet.create(doc, name="MasterSheet")
+        master.add_parameter("Length")
+        for config, value in (("TypeA", 80), ("TypeB", 85)):
+            master.add_configuration(config)
+            master.set_value(config, "Length", value)
+
+        body = doc.addObject("PartDesign::Body", "Bolt")
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="BoltLength")
+        body.addObject(ref)
+        doc.recompute()
+
+        # with no link there is nothing to say
+        assert _following_link_hint(ref) is None
+
+        link = doc.addObject("App::Link", "Bolt1")
+        link.LinkedObject = body
+        link.LinkCopyOnChange = "Enabled"
+        doc.recompute()
+
+        # switching the row on the part reaches this link without copying it, so
+        # the user is told where a variant's own row lives
+        hint = _following_link_hint(ref)
+        assert "Bolt is linked by Bolt1" in hint, hint
+        assert "copy on change" in hint
+        assert "Change the row on the link itself" in hint
+
+        # once the link diverged into a variant it no longer follows the part
+        link.BoltLength = "TypeB"
+        doc.recompute()
+        assert link.LinkedObject is not body
+        assert _following_link_hint(ref) is None
+    finally:
+        FreeCAD.closeDocument("LinkHint")
+
+
 def main():
     tests = [
         value

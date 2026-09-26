@@ -40,7 +40,10 @@ one of them.
 
 **Switch Configuration** opens a sorted list of configuration names with a
 search box (type to filter, case-insensitive), so you pick a row instead of
-typing its exact name.
+typing its exact name. The same picker opens when you click the **Configuration**
+field of a `ConfigRef` in the property editor: the field carries FreeCAD's
+`UserEdit` status, so instead of a text box it shows an edit button whose click
+opens the list (nothing to remember, no name to type).
 
 ## Part variants (several configurations on one part)
 
@@ -51,7 +54,11 @@ makes a part configurable without a combinatorial row per possible part.
 
 When a `ConfigRef` sits inside a container (a Body or a Part), the container
 itself grows a **selector** property named after that ConfigRef's
-`ConfigurationName`, and the ConfigRef follows it. The selectors carry FreeCAD's
+`ConfigurationName`, and the ConfigRef follows it. A selector is a drop-down
+(an `App::PropertyEnumeration`) listing the rows the master table has, so on the
+part too you *pick* a configuration instead of typing one; a row that the master
+no longer has stays in the list as long as it is the selected one, so the part is
+never silently re-pointed. The selectors carry FreeCAD's
 `CopyOnChange` status, so an `App::Link` can mirror them and copy the part:
 
 1. Put one `ConfigRef` per master table inside the part. The part gains one
@@ -61,15 +68,37 @@ itself grows a **selector** property named after that ConfigRef's
    **Link Copy On Change** to `Enabled` (or `Tracking` to follow later template
    changes).
 3. The link now offers a `Configuration (ConfigRef)` group in the property
-   editor with one entry per configuration. Change any of them and FreeCAD copies
-   the part: that link is an independent variant with its own rows.
+   editor with one entry per configuration, each a drop-down of the master's
+   rows. Change any of them and FreeCAD copies the part: that link is an
+   independent variant with its own rows.
 
 One template plus a handful of links gives you as many variants as you like, all
 still driven by the same master tables - edit a row in a master and every part
 using that row follows.
 
-Changing a row on the **part** or on the **ConfigRef** keeps the other in step,
-so *Switch Configuration* and hand edits keep working exactly as before. Two
+**A variant's own row is set on the link, and only there.** FreeCAD deliberately
+*syncs* a copy-on-change link's mirrored property from the part whenever the part
+changes, and a link is copied into an independent variant only when one of its
+**own** mirrored properties changes. So:
+
+| you change | result |
+| :--- | :--- |
+| the row **on the link** (`Configuration (…)` entry, or the property editor drop-down of a variant) | that link diverges: FreeCAD copies the part and the link becomes an independent variant with that row |
+| the row **on the part** or on a `ConfigRef` inside it - the part's own drop-down, the ConfigRef's picker, *Switch Configuration* | the part takes the row and **every link that still follows the part follows with it**; nothing is copied |
+| the row on a `ConfigRef` **inside an existing copy** | only that variant changes (the copy's ConfigRefs are its own objects, listed under the link) |
+
+That is FreeCAD's copy-on-change contract, not a limitation of this workbench.
+To keep it from surprising you, switching a row through the `ConfigRef` picker
+says so in the report view when the part has copy-on-change links that follow it:
+
+```
+Bolt is linked by Bolt1 (copy on change): they follow the part's configuration.
+Change the row on the link itself to give a variant its own configuration.
+```
+
+Changing a row on the **part** or on the **ConfigRef** keeps those two in step,
+so *Switch Configuration*, the drop-down and hand edits keep working exactly as
+before. Two
 configurations in one part need distinct `ConfigurationName` values, and the name
 must not collide with an existing property of the part (`Shape`, `Tip`, …); either
 case is reported in `ConfigurationError` rather than silently ignored, and that

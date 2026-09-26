@@ -114,18 +114,49 @@ Attach `ConfigRefViewProvider` to `obj` (GUI only). Called by `create()`.
 Point an existing ConfigRef's `Master` at a sheet in an external document. Opens
 `file_path` if it is not already open. The owner document must already be saved.
 
+### `row_selector(obj)` → `(source, property)`
+
+What a row selected for `obj` is written to: the reference's container and its
+selector property when the reference lives in a part, otherwise `obj` itself and
+`Configuration`. (An enumeration can only hold one of its own items, so writing a
+row the selector does not know yet adds it as an item instead of raising - see
+`switch_configuration`.)
+
+Note that writing *source* is **not** what creates a variant: FreeCAD syncs the
+change into the mirrored property of every link that still follows it, and only a
+change on the link itself makes that link diverge (`variants.variant_links`).
+
 ### `switch_configuration(obj, row)`
 
 Select `row` for a ConfigRef: writes the part's selector when it has one (and
 marks the ConfigRef for recompute, since a container property change does not
 re-execute its children), otherwise writes `Configuration` directly.
 
+A selector is an `App::PropertyEnumeration`, which raises for a value that is not
+one of its items, so a `row` the selector does not know yet (a typo, or a row the
+master no longer has) is added to its items rather than rejected. The next
+recompute drops that extra item again, once nothing selects it.
+
+### `object_of(proxy)` → object or None
+
+The document object a `ConfigRef` proxy belongs to. FreeCAD's property-editor
+hook `editProperty` receives only the property name, so the proxy has to find its
+own object; matching the proxy identity is exact, because FreeCAD gives every
+object its own proxy instance. The object is *not* stored on the proxy: a proxy
+carrying FreeCAD's `__object__` attribute would be called without the object by
+every FeaturePython callback, and a document object cannot be serialized into
+the document either.
+
 ### `class ConfigRef` — FeaturePython proxy
 
 Object properties:
 
 - `Master` — `App::PropertyXLink` to the master spreadsheet (same or another document).
-- `Configuration` — `App::PropertyString` — the selected row name.
+- `Configuration` — `App::PropertyString` — the selected row name. Carries the
+  `UserEdit` status, so the property editor shows an edit button for it whose
+  click opens the configuration picker (`ConfigRef.editProperty`, see
+  `dialogs.select_configuration.choose_configuration`); the value stays writable
+  for scripts and expressions.
 - `ConfigurationName` — `App::PropertyString` — what this configuration is called
   on the part; defaults to the object's name. It names the selector property the
   container gets (see *Part variants*) and is preserved by an `App::Link` copy,
@@ -170,11 +201,19 @@ FreeCAD's `App::Link` copy-on-change only mirrors properties of the object that 
 the selectors:
 
 - Every ConfigRef inside a container makes the container grow one selector
-  property named after its `ConfigurationName` (`App::PropertyString`, group
-  `ConfigRef`, status `CopyOnChange`). The names this workbench created are listed
+  property named after its `ConfigurationName` (an `App::PropertyEnumeration` of
+  the master's configurations, group `ConfigRef`, status `CopyOnChange`), which
+  the property editor shows as a drop-down. A Body is a C++ object and cannot
+  open the picker dialog the way the ConfigRef's own field can, so the drop-down
+  is how the part offers the rows - the same thing FreeCAD's own configuration
+  table does. An extra item is kept while it is the selected row (an enumeration
+  cannot hold anything else), otherwise the master's rows are the items. The
+  names this workbench created are listed
   in the container's hidden `_ConfigurationSlots` property; selectors whose
   ConfigRef is gone are removed again, and no property the workbench did not
-  create is ever touched.
+  create is ever touched. A selector written by an earlier version as a plain
+  `App::PropertyString` is rebuilt as an enumeration on the next recompute, with
+  the row it selected preserved (a link mirroring it follows along).
 - `Configuration` follows its selector. Both directions are kept equal:
   `config_ref.switch_configuration()` (and any direct write to `Configuration`)
   copies the row up into the selector, and a selector change marks the ConfigRefs
@@ -195,6 +234,16 @@ the selectors:
 - `GROUP` (`ConfigRef`) — the property group shown in the property editor.
 
 ## `freecad.spreadsheetplus.variants`
+
+### `variant_links(source, name)` → list
+
+The `App::Link` objects that would make an independent variant if *name* changed
+on *source*: the links that still follow *source* (they have not diverged into a
+copy yet) and mirror *name* with the `CopyOnChange` status. FreeCAD copies the
+source as soon as one of *their* mirrored properties changes, so a change on the
+source itself - what `row_selector` writes - reaches them without copying. The
+*Switch configuration* picker uses this to tell the user where a variant's own
+row lives. Empty list when nothing follows *source*.
 
 ### `attach()` / `detach()`
 
@@ -232,7 +281,18 @@ by `config_ref.create()` when the GUI is up.
 
 Qt dialog that picks a configuration row from a **sorted** list with a
 case-insensitive **type-to-search** filter. `selected()` returns the chosen
-name (or `None`). Used by the Switch Configuration command.
+name (or `None`).
+
+### `choose_configuration(ref, parent=None)` → bool
+
+Let the user pick a row for `ref` and select it (`switch_configuration` + a
+recompute). Returns True when a row was chosen. Shared by the Switch
+Configuration command and by the edit button of the ConfigRef's `Configuration`
+property, so both offer exactly the same list.
+
+After a switch it reports - via `App.Console.PrintMessage` in the report view -
+which copy-on-change links just followed the part (`_following_link_hint`), so the
+copy-on-change contract in `docs/usage.md` is discoverable where it bites.
 
 ## `freecad.spreadsheetplus.commands`
 

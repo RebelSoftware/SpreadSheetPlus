@@ -200,6 +200,37 @@ def test_configuration_names_are_case_insensitive():
         FreeCAD.closeDocument("ConfigRefTest6")
 
 
+def test_configuration_is_a_pick_not_a_text_field():
+    doc = FreeCAD.newDocument("ConfigRefTest8")
+    try:
+        master = _build_master(doc)
+        ref = create_config_ref(doc, master.sheet, "TypeA", name="ConfigRefA")
+        doc.recompute()
+
+        # The selection is one of the master's rows, so the property editor
+        # shows an edit button (FreeCAD's "UserEdit" status) whose click is
+        # routed to the proxy's editProperty() - it opens the picker instead of
+        # letting a name be typed in.
+        assert "UserEdit" in ref.getPropertyStatus("Configuration")
+        # ...and it stays writable: a read-only property gets no editor at all,
+        # so the button would disappear, and scripts/expressions set it too.
+        assert "ReadOnly" not in ref.getEditorMode("Configuration")
+        assert "CopyOnChange" in ref.getPropertyStatus("Configuration")
+
+        # The hook FreeCAD calls with the clicked property's name handles only
+        # "Configuration", and never runs without a GUI.
+        assert ref.Proxy.editProperty("Length") is False
+        assert ref.Proxy.editProperty("Configuration") is False
+
+        # it can still be set from code, which is the read-through contract
+        ref.Configuration = "TypeB"
+        doc.recompute()
+        assert ref.Length == 85
+    finally:
+        save_document(doc, "config_ref_user_edit")
+        FreeCAD.closeDocument("ConfigRefTest8")
+
+
 def main():
     tests = [
         value

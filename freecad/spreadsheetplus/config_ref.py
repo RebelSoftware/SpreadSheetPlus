@@ -5,6 +5,20 @@ A ConfigRef links to a `Spreadsheet::Sheet` (the master, possibly in another
 document) and selects one configuration row by name. It exposes that row's
 parameters as read-only dynamic properties, refreshed from the master whenever
 the configuration changes or the document recomputes.
+
+Choosing a row is a pick from the master's configurations, never free text, so
+both places that show the selection offer that pick:
+
+* the ConfigRef's own ``Configuration`` property carries the ``UserEdit``
+  status, which makes FreeCAD's property editor show an edit button whose click
+  it routes to :meth:`ConfigRef.editProperty` - the hook that opens the
+  configuration picker (see `dialogs.select_configuration.choose_configuration`).
+* the selector a container carries for the reference (see `_sync_slots`) is an
+  ``App::PropertyEnumeration`` of the available rows, which the property editor
+  shows as a drop-down. FreeCAD only lets a *Python* object react to a property
+  click, and a `PartDesign::Body` / `App::Part` is not one, so a drop-down is
+  the only way a part can offer the list too - it is what FreeCAD's own
+  configuration table does on a Body.
 """
 
 from __future__ import annotations
@@ -71,6 +85,12 @@ _STATUS_PROPERTIES = (
     "TableValid",
     "TableErrors",
 )
+
+#: Property type of a container's configuration selector. An enumeration is
+#: shown as a drop-down of its items, which is how the user picks a row on the
+#: part/Body itself (a Body is a C++ object, so it cannot run our own dialog -
+#: see the module docstring).
+_SELECTOR_TYPE = "App::PropertyEnumeration"
 
 #: Hidden list of the configuration selectors a container owns. It records
 #: which properties on the container were created by this workbench, so stale
@@ -208,6 +228,24 @@ def _hide_inherited_properties(obj) -> None:
             continue
 
 
+def _mark_user_edit(obj, name: str) -> None:
+    """Let the property editor offer an edit button for *name*.
+
+    A property carrying the ``UserEdit`` status is shown with a button whose
+    click FreeCAD routes to the owning object's `editProperty` hook. Older
+    releases do not know the status at all; there the property stays a plain
+    text field instead of turning into an unresponsive button.
+    """
+    try:
+        if "UserEdit" not in obj.getPropertyStatus():
+            return
+        obj.setPropertyStatus(name, "UserEdit")
+    except Exception:
+        # getPropertyStatus()/setPropertyStatus() are not available on very old
+        # builds: no click-to-edit then, but the reference still works.
+        return
+
+
 class ConfigRef:
     """FeaturePython proxy for a ConfigRef object."""
 
@@ -242,6 +280,10 @@ class ConfigRef:
         # App::Link copy-on-change mirrors the marked properties of the object
         # that is linked, which is what gives every link its own selection.
         obj.setPropertyStatus("Configuration", "CopyOnChange")
+        # ...and a choice among the master's rows, never free text: "UserEdit"
+        # makes the property editor show an edit button for it and call the
+        # proxy's editProperty() when it is clicked, which opens the picker.
+        _mark_user_edit(obj, "Configuration")
         if not hasattr(obj, "ManagedParameters"):
             obj.addProperty(
                 "App::PropertyStringList",
@@ -292,6 +334,31 @@ class ConfigRef:
             return None
         return Table(master)
 
+    def editProperty(self, name: str) -> bool:
+        """Open the configuration picker - FreeCAD's property editor hook.
+
+        A property that carries the ``UserEdit`` status gets an edit button in
+        the property editor, and clicking it calls this method on the proxy
+        (``FeaturePythonImp::editProperty``). The selection is one of the
+        master's rows, so the picker replaces typing a name by hand.
+
+        Returns True when the property was handled. FreeCAD treats a falsy
+        return as "not implemented" and falls back to doing nothing.
+        """
+        if name != "Configuration":
+            return False
+        if not App.GuiUp:
+            return False
+        # GUI code (Qt), so import it only when the hook actually runs: this
+        # module is imported headless too.
+        from .dialogs.select_configuration import choose_configuration
+
+        obj = object_of(self)
+        if obj is None:
+            return False
+        choose_configuration(obj)
+        return True
+
     def onChanged(self, obj, prop: str) -> None:
         # No work here. Changing a property marks the object for recompute, and
         # the actual sync runs in execute() (only on recompute, after the
@@ -306,14 +373,16 @@ class ConfigRef:
     def _sync(self, obj) -> None:
         if self._syncing:
             return
-        problems = self._apply_container_row(obj)
         table = self._table(obj)
+        snapshot = table.snapshot() if table is not None else None
+        problems = self._apply_container_row(
+            obj, snapshot.configs if snapshot is not None else ()
+        )
         if table is None:
             problems.append("No master spreadsheet linked")
             self._set_status(obj, "\n".join(problems), False)
             self._set_table_status(obj, ["No master spreadsheet linked"])
             return
-        snapshot = table.snapshot()
         self._syncing = True
         try:
             managed = self._sync_properties(obj, snapshot)
@@ -323,7 +392,7 @@ class ConfigRef:
         self._update_status(obj, snapshot, problems)
         self._update_table_status(obj, snapshot, managed)
 
-    def _apply_container_row(self, obj) -> list[str]:
+    def _apply_container_row(self, obj, configurations=()) -> list[str]:
         """Adopt the row selected on the part, when the part owns a selector.
 
         FreeCAD's App::Link copy-on-change only mirrors properties of the object
@@ -333,13 +402,16 @@ class ConfigRef:
         ConfigRef follows that selector; `variants.VariantObserver` is what marks
         it for recompute when the selector changes, because nothing inside the
         part may depend on the part itself (FreeCAD forbids that cycle).
+
+        *configurations* are the rows the master has now; they become the items
+        of the selector, so the part's property editor can offer them.
         """
         container = parent_group(obj)
         if container is None or container.TypeId == "App::LinkGroup":
             # Outside a part - including the private LinkGroup FreeCAD uses to
             # hold copy-on-change copies - the ConfigRef is its own selector.
             return []
-        row, problems = _sync_slots(container, obj)
+        row, problems = _sync_slots(container, obj, configurations)
         if row is None:
             # No usable selector (the name is taken on the container): the
             # ConfigRef keeps working from its own value, and says why.
@@ -527,6 +599,27 @@ class ConfigRef:
             pass
 
 
+def object_of(proxy):
+    """The document object a ConfigRef *proxy* belongs to (or None).
+
+    FreeCAD hands the property-editor hook `editProperty` only the property
+    name, so the proxy has to find its own object. Storing the object on the
+    proxy is not the way here: a proxy that carries FreeCAD's ``__object__``
+    attribute is called *without* the object by every FeaturePython callback
+    (`FeaturePythonImp` picks the signature from that attribute), which would
+    change `execute`/`onChanged` for the whole add-on. A stored attribute would
+    have to be re-established after a reload as well - and a document object is
+    not serializable, so it would break saving. Matching the proxy identity is
+    exact (FreeCAD gives every object its own proxy instance) and costs one
+    walk of the open documents on a click.
+    """
+    for doc in App.listDocuments().values():
+        for obj in doc.Objects:
+            if getattr(obj, "Proxy", None) is proxy:
+                return obj
+    return None
+
+
 def create(doc, master, configuration: str, name: str = "ConfigRef"):
     """Create and return a ConfigRef object.
 
@@ -595,7 +688,83 @@ def _registered_slots(container) -> list[str]:
     return list(getattr(container, _SLOT_REGISTRY, ()) or ())
 
 
-def _sync_slots(container, obj):
+def _selector_items(container, name: str) -> list[str]:
+    """The items of a container's selector ([] when it is not an enumeration)."""
+    if container.getTypeIdOfProperty(name) != _SELECTOR_TYPE:
+        return []
+    return list(container.getEnumerationsOfProperty(name) or ())
+
+
+def _store_slot_value(container, name: str, value: str) -> None:
+    """Write *value* to a container's configuration selector.
+
+    A selector is an `App::PropertyEnumeration`, and an enumeration can only
+    hold one of its own items: assigning anything else raises. A value the
+    selector does not know yet - a row the master does not have, or the empty
+    string of a reference that has not picked a row - is therefore added as an
+    item instead of being rejected, so writing a selection can neither fail nor
+    silently replace the selection with another row. `_sync_slots` drops the
+    extra item again on the next recompute, once nothing selects it.
+
+    This is also the write path for the plain string selectors of documents
+    written by earlier versions; a string property takes any value.
+    """
+    if container.getTypeIdOfProperty(name) != _SELECTOR_TYPE:
+        setattr(container, name, value)
+        return
+    items = _selector_items(container, name)
+    if value not in items:
+        items.append(value)
+        setattr(container, name, items)
+    if getattr(container, name, None) != value:
+        setattr(container, name, value)
+
+
+def _refresh_slot_items(container, name: str, row: str, configurations) -> None:
+    """Offer exactly *configurations* on the selector, and select *row*.
+
+    *row* is kept as an extra item when it is not one of *configurations*: an
+    enumeration cannot hold anything but one of its own items, and silently
+    moving the selection to another row would change the part behind the user's
+    back. That the row does not resolve is reported by the reference's status.
+    """
+    if container.getTypeIdOfProperty(name) != _SELECTOR_TYPE:
+        _store_slot_value(container, name, row)
+        return
+    items = sorted(configurations, key=str.lower)
+    if row not in items:
+        items.append(row)
+    if items != _selector_items(container, name):
+        setattr(container, name, items)
+    if getattr(container, name, None) != row:
+        setattr(container, name, row)
+
+
+def _add_selector(container, name: str, obj) -> None:
+    """Add the `App::PropertyEnumeration` a container selects rows with."""
+    container.addProperty(
+        _SELECTOR_TYPE,
+        name,
+        GROUP,
+        f"Selected configuration row of {obj.Label}",
+    )
+
+
+def _convert_selector(container, name: str, obj) -> None:
+    """Rebuild the plain string selector of an earlier version as an enumeration.
+
+    FreeCAD cannot change a property's type, so the property is replaced. The
+    row it selected is kept, and a link that mirrors the selector copies the new
+    type on the next recompute (verified against FreeCAD 1.1).
+    """
+    row = getattr(container, name, "") or ""
+    container.removeProperty(name)
+    _add_selector(container, name, obj)
+    container.setPropertyStatus(name, "CopyOnChange")
+    _store_slot_value(container, name, row)
+
+
+def _sync_slots(container, obj, configurations=()):
     """Make sure *container* carries a row selector for every ConfigRef in it.
 
     Returns ``(row, problems)``: the row selected on the container (``None``
@@ -608,6 +777,12 @@ def _sync_slots(container, obj):
     a variant inherits the row selected on that link. That is why they live on
     the container and not on the ConfigRef - only the linked object's own
     properties are mirrored.
+
+    Each selector is an `App::PropertyEnumeration` of the rows *configurations*
+    (the master's configurations, as the reference sees them now), which is what
+    lets the part offer them as a drop-down in the property editor: a Body is a
+    C++ object, so it cannot open the reference's picker dialog the way the
+    ConfigRef's own ``Configuration`` property can (see the module docstring).
     """
     problems = []
     if not hasattr(container, _SLOT_REGISTRY):
@@ -643,12 +818,7 @@ def _sync_slots(container, obj):
         )
         return None, problems
     if not hasattr(container, name):
-        container.addProperty(
-            "App::PropertyString",
-            name,
-            GROUP,
-            f"Selected configuration row of {obj.Label}",
-        )
+        _add_selector(container, name, obj)
         container.setPropertyStatus(name, "CopyOnChange")
         setattr(container, _SLOT_REGISTRY, keep + [name])
         _SLOT_NAMES.add(name)
@@ -660,10 +830,36 @@ def _sync_slots(container, obj):
             f"has a property with that name"
         )
         return None, problems
-    if not getattr(container, name):
-        # a fresh (or emptied) selector starts from the ConfigRef's selection
-        setattr(container, name, obj.Configuration)
-    return getattr(container, name), problems
+    elif container.getTypeIdOfProperty(name) != _SELECTOR_TYPE:
+        # A selector written by an earlier version: a plain string back then.
+        _convert_selector(container, name, obj)
+
+    # A fresh (or emptied) selector starts from the ConfigRef's selection;
+    # otherwise the selector is what the reference follows, so the part and all
+    # its variants stay in charge of the row.
+    row = getattr(container, name, None) or obj.Configuration or ""
+    _refresh_slot_items(container, name, row, configurations)
+    return getattr(container, name, None), problems
+
+
+def row_selector(obj):
+    """Return the ``(source, property)`` a row selected for *obj* is written to.
+
+    A ConfigRef inside a container selects through that container's selector -
+    the part owns the row, which is what `App::Link` copy-on-change mirrors, so
+    a variant can pick its own. A reference outside a part (or one whose name the
+    container cannot use) is its own selector.
+
+    Writing *source* is **not** what creates a variant: FreeCAD syncs the change
+    into the mirrored property of every link that still follows it, and only a
+    change on the link itself makes that link diverge (see
+    `variants.variant_links`).
+    """
+    container = parent_group(obj)
+    name = slot_name(obj)
+    if container is not None and name in _registered_slots(container):
+        return container, name
+    return obj, "Configuration"
 
 
 def switch_configuration(obj, row: str) -> None:
@@ -673,13 +869,12 @@ def switch_configuration(obj, row: str) -> None:
     container property change does not re-execute its children - this route has
     to work whether or not `variants.VariantObserver` is attached.
     """
-    container = parent_group(obj)
-    name = slot_name(obj)
-    if container is not None and name in _registered_slots(container):
-        setattr(container, name, row)
-        obj.touch()
+    source, name = row_selector(obj)
+    if source is obj:
+        obj.Configuration = row
         return
-    obj.Configuration = row
+    _store_slot_value(source, name, row)
+    obj.touch()
 
 
 def _expressions_of(obj):

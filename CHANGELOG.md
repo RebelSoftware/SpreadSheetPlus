@@ -6,6 +6,35 @@ ISO 8601 (`YYYY-MM-DD`).
 ## [Unreleased]
 
 **Added**
+- **Picking a configuration instead of typing one.** The `Configuration`
+  property of a `ConfigRef` now carries FreeCAD's `UserEdit` status: the property
+  editor shows an edit button next to it, and clicking it opens the same sorted,
+  searchable configuration picker as the *Switch Configuration* command
+  (`ConfigRef.editProperty`). That picker moved to
+  `dialogs.select_configuration.choose_configuration()`, which the command and
+  the property editor button now share.
+- The **selectors** a part carries for its ConfigRefs (one per configuration, the
+  thing `App::Link` copy-on-change mirrors) are now `App::PropertyEnumeration`s of
+  the master's configurations, so the part/Body offers them as a **drop-down** in
+  the property editor. FreeCAD only lets a *Python* object react to a property
+  click and a Body is not one, so a drop-down is the way the part can offer the
+  rows too - it is what FreeCAD's own configuration table does. A selected row
+  the master no longer has is kept as an extra item rather than the selector
+  silently jumping to another row, and `switch_configuration()` accepts any row
+  (an enumeration raises for a value that is not one of its items). Selectors
+  written by earlier versions as a plain `App::PropertyString` are rebuilt as
+  enumerations on the next recompute, keeping the row they selected - a link that
+  mirrors the selector follows the new type.
+- **A switch now says which links it reached.** FreeCAD copies a copy-on-change
+  `App::Link` into an independent variant only when one of the *link's own*
+  mirrored properties changes: a change on the part is synced into that mirror
+  instead (`LinkBaseExtension::setupCopyOnChange`), so a part-side switch - the
+  ConfigRef picker, the *Switch configuration* command, the part's own drop-down
+  - updates every link that still follows the part and copies nothing. The picker
+  reports those links in the report view and points at the link's own property,
+  and `docs/usage.md` spells the contract out. `variants.variant_links(source,
+  name)` and `config_ref.row_selector(obj)` express it, and
+  `tests/test_variants.py` pins it so a future change cannot silently alter it.
 - **Part variants.** A part can now be configured by several `ConfigRef`s at
   once, one per master table, and every `App::Link` variant picks its own row for
   each of them (Length, Pitch, Head style, …) instead of needing one

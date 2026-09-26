@@ -219,6 +219,40 @@ Example:
    sees the pasted value, and it makes the copy re-read its rows. An object-level
    `signalChanged` is not exposed to Python; an `App::DocumentObjectExtension`
    would need C++ to attach (`addExtension` rejects non-Python extensions).
+6. **Picking a configuration** — both places that show the selection *offer* it,
+   and the mechanism is forced by FreeCAD's property editor:
+   - FreeCAD shows an edit button for a property carrying the `UserEdit` status
+     and routes the click to the owning container's `editProperty`
+     (`PropertyItemDelegate` → `PropertyContainer::editProperty`). Only
+     `App::FeaturePython`-style objects forward that to Python
+     (`FeaturePythonImp::editProperty`) - verified against 1.1.3, where *no*
+     built-in container overrides it. The `ConfigRef` is such an object, so its
+     `Configuration` field opens the picker dialog.
+   - A `PartDesign::Body` / `App::Part` is a C++ object, so it can never run the
+     dialog; the part's selector is therefore an `App::PropertyEnumeration` of
+     the master's rows, which the property editor shows as a **drop-down** - the
+     same thing FreeCAD's own configuration table does
+     (`Spreadsheet/Gui/DlgSheetConf.cpp` adds a `PropertyEnumeration` to the bound
+     Body). An enumeration raises for a value that is not one of its items, so a
+     selected row the master no longer has (or an empty selection) is kept as an
+     extra item instead of the selector silently jumping to another row;
+     `_store_slot_value` is the only write path, and `_refresh_slot_items`
+     re-derives the items from the master on every recompute.
+
+   **Where a variant's own row lives (and why).** `App::Link` copy-on-change
+   copies the linked object into an independent one only when a *mirrored
+   property of the link itself* changes. A change on the source is connected
+   straight back into the mirror with the copy trigger suppressed
+   (`LinkBaseExtension::setupCopyOnChange`, the `Property::User3` guard), so a
+   part-side switch can never create a variant - verified empirically (part-side
+   only: no copy; link-side: copy; both in one transaction: copy). Consequently:
+   the part's selector / a ConfigRef inside the part is the *shared* row, the
+   link's mirrored property (or the ConfigRef of an existing copy) is the
+   *variant's* row, and `variants.variant_links()` is what the picker reports so
+   the user is told instead of surprised. Making the part-side switch also push
+   into the links' mirrors is possible but rejected: it would turn every
+   un-diverged link into an independent copy and still change the part's own row,
+   destroying "edit once, all variants follow".
 
 ### Remaining open (can decide later)
 - Whether `MasterSheet` wraps an existing `Spreadsheet::Sheet` or owns its own.
