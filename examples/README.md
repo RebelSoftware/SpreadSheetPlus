@@ -90,3 +90,6 @@ copies the part only when one of the *link's* mirrored properties changes.
 
 See [docs/usage.md](../docs/usage.md) for the full guide and
 [docs/api.md](../docs/api.md) for the API the example uses.
+
+
+![Bolts Example](spreadsheetplus-demo.png)
