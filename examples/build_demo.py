@@ -96,6 +96,7 @@ def add_reference(doc, container, master, configuration, name):
     container.addObject(ref)
     return ref
 
+
 def build_bolt(doc, master, configuration):
     """The bolt: two interchangeable head styles plus a shank, all from the table.
 
@@ -130,21 +131,19 @@ def build_bolt(doc, master, configuration):
     shank.AttachmentSupport = [(body.Origin, "XY_Plane")]
     shank.MapMode = "FlatFace"
     shank.setExpression("AttachmentOffset.Base.z", "BoltConfig.HeadHeight")
-    # MapMode "FlatFace" would attach to the head; AttachmentOffset on the
-    # default XY_Plane placement is simpler for a demo and keeps the shank
-    # independent of which head is active.
-    
-   
+    # Attach the shank's flat face to the body's XY_Plane - the underside of the
+    # head - then lift it by the head height. Going through the body's own plane
+    # rather than to the head feature itself keeps the shank independent of
+    # which head style is switched on.
+
     chamfer = body.newObject("PartDesign::Chamfer", "TipChamfer")
     chamfer.Base = (shank, [])   # empty sub-element list
     chamfer.UseAllEdges = True
     chamfer.Size = "0.5 mm"
-   
-    
+
     return body, ref
 
-  
-    
+
 def build_spacer(doc, master, configuration):
     """A second part: same table, its own ConfigRef, its own row."""
     body = doc.addObject("PartDesign::Body", "Spacer")
@@ -198,7 +197,7 @@ def main() -> None:
 
     master = build_table(doc)
     bolt, bolt_ref = build_bolt(doc, master, BOLT_ROW)
-    
+
     spacer, _ = build_spacer(doc, master, SPACER_ROW)
     spread_out(spacer, 30)
 
