@@ -96,39 +96,55 @@ def add_reference(doc, container, master, configuration, name):
     container.addObject(ref)
     return ref
 
-
 def build_bolt(doc, master, configuration):
     """The bolt: two interchangeable head styles plus a shank, all from the table.
 
     Only the numeric/boolean parameters are used; the ``Designation`` column
     shows up as a text property on the reference, ready for a label or a report.
+
+    Layout: the origin is the underside of the head. The head grows upward from
+    Z=0, the shank hangs downward from Z=0, and both are centred on the Z axis.
     """
     body = doc.addObject("PartDesign::Body", "Bolt")
     ref = add_reference(doc, body, master, configuration, "BoltConfig")
 
-    # A hex head is a block, a socket head a cylinder, and the table's HexHead
-    # column decides which of the two is active. (FreeCAD expressions have no
-    # "not", so the block is switched off by comparing with False instead.)
-    hex_head = body.newObject("PartDesign::AdditiveBox", "HexHead")
-    hex_head.setExpression("Length", "BoltConfig.HeadAcrossFlats")
-    hex_head.setExpression("Width", "BoltConfig.HeadAcrossFlats")
+    # --- Head ---------------------------------------------------------------
+    # A hex head is a regular hexagonal prism; "across flats" is the distance
+    # between opposite faces, so the circumradius is A/F / sqrt(3).
+    hex_head = body.newObject("PartDesign::AdditivePrism", "HexHead")
+    hex_head.setExpression("Polygon", "6")
+    hex_head.setExpression("Circumradius", "BoltConfig.HeadAcrossFlats / sqrt(3)")
     hex_head.setExpression("Height", "BoltConfig.HeadHeight")
     hex_head.setExpression("Suppressed", "BoltConfig.HexHead == False")
 
+    # A socket head is a cylinder of the same height, centred on Z.
     socket_head = body.newObject("PartDesign::AdditiveCylinder", "SocketHead")
-    socket_head.setExpression("Radius", "BoltConfig.ShankDiameter * 0.75")
-    socket_head.setExpression("Height", "BoltConfig.ShankDiameter")
+    socket_head.setExpression("Radius", "BoltConfig.HeadAcrossFlats / 2")
+    socket_head.setExpression("Height", "BoltConfig.HeadHeight")
     socket_head.setExpression("Suppressed", "BoltConfig.HexHead")
 
-    # The shank is always there, which also keeps it the Body's tip whether or
-    # not a head is suppressed.
+    # --- Shank --------------------------------------------------------------
     shank = body.newObject("PartDesign::AdditiveCylinder", "Shank")
     shank.setExpression("Radius", "BoltConfig.ShankDiameter / 2")
     shank.setExpression("Height", "BoltConfig.ShankLength")
+    shank.AttachmentSupport = [(body.Origin, "XY_Plane")]
+    shank.MapMode = "FlatFace"
     shank.setExpression("AttachmentOffset.Base.z", "BoltConfig.HeadHeight")
+    # MapMode "FlatFace" would attach to the head; AttachmentOffset on the
+    # default XY_Plane placement is simpler for a demo and keeps the shank
+    # independent of which head is active.
+    
+   
+    chamfer = body.newObject("PartDesign::Chamfer", "TipChamfer")
+    chamfer.Base = (shank, [])   # empty sub-element list
+    chamfer.UseAllEdges = True
+    chamfer.Size = "0.5 mm"
+   
+    
     return body, ref
 
-
+  
+    
 def build_spacer(doc, master, configuration):
     """A second part: same table, its own ConfigRef, its own row."""
     body = doc.addObject("PartDesign::Body", "Spacer")
@@ -153,10 +169,10 @@ def build_variant(doc, source, selector, row, name, label):
     Changing the row on the part instead would move the part itself (and every
     variant that still follows it).
 
-    Note what FreeCAD copies along: the variant gets its own copy of the
-    referenced master sheet as well, so once a variant exists it reads that
-    copy. The part that links the sheet directly always follows the original -
-    see the note in ``examples/README.md``.
+    What FreeCAD copies along is the *part* and its dependencies - but not the
+    table: every master sheet is marked as shared
+    (`master_sheet.keep_shared()`), so the copied reference keeps reading the one
+    master and later edits there reach this variant too. Only the row is its own.
     """
     link = doc.addObject("App::Link", name)
     link.Label = label
@@ -182,6 +198,7 @@ def main() -> None:
 
     master = build_table(doc)
     bolt, bolt_ref = build_bolt(doc, master, BOLT_ROW)
+    
     spacer, _ = build_spacer(doc, master, SPACER_ROW)
     spread_out(spacer, 30)
 

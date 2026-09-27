@@ -13,8 +13,9 @@ ISO 8601 (`YYYY-MM-DD`).
   `SpreadSheetPlus-demo.FCStd` is not committed - run the script), and it
   exercises the whole story: unit-bearing cells inferred as
   `App::PropertyLength`, a text column and a bool column (the bool switches the
-  head between a hex block and a socket cylinder), a second part driven by its own
-  `ConfigRef`, and variants that keep their own rows.
+  head between a hexagonal prism and a socket cylinder, on a chamfered shank), a
+  second part driven by its own `ConfigRef`, and variants that keep their own
+  rows.
 - **Picking a configuration instead of typing one.** The `Configuration`
   property of a `ConfigRef` now carries FreeCAD's `UserEdit` status: the property
   editor shows an edit button next to it, and clicking it opens the same sorted,

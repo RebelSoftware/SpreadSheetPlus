@@ -297,9 +297,10 @@ submission. Test suites are green: **44 headless** (incl. 15 variants) and
 - **Worked example** (`examples/`): `build_demo.py` builds
   `SpreadSheetPlus-demo.FCStd`, a bolt family that shows the whole story - a table
   with unit-bearing length columns, a text and a bool column; a PartDesign part
-  driven by its own `ConfigRef`, where the bool switches the head between a hex
-  block and a socket cylinder (`Suppressed` expressions; FreeCAD has no "not", so
-  the block compares with `False`); a second part reading the same table with its
+  driven by its own `ConfigRef`, where the bool switches the head between a
+  hexagonal prism and a socket cylinder (`Suppressed` expressions; FreeCAD has no
+  "not", so the block compares with `False`), on a shank attached to the Body's
+  `XY_Plane` with a chamfered tip; a second part reading the same table with its
   own row; and two `App::Link` variants that keep their own rows. Verified by
   reopening the file (table valid, every row's values, part volumes, Body tips,
   variant independence, view state). Documented in `examples/README.md`, linked

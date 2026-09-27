@@ -20,7 +20,7 @@ call (`MasterSheet.create`, `master.add_parameter`, `config_ref.create`,
 | Object | What it shows |
 | :--- | :--- |
 | `BoltTable` | The master configuration table: 5 configurations (rows) × 7 parameters (columns), edited in FreeCAD's own spreadsheet editor. |
-| `Bolt` (+ `BoltConfig`) | A PartDesign part - a shank with a hex or socket head - driven by one row of the table. |
+| `Bolt` (+ `BoltConfig`) | A PartDesign part - a chamfered shank with a hex or socket head - driven by one row of the table. |
 | `Spacer` (+ `SpacerConfig`) | A second part, the same table, its own row: nothing is copied. |
 | `BoltM6x30`, `BoltSocket` | Two variants of `Bolt`, each with its own row. |
 
@@ -45,8 +45,8 @@ them side by side.
 3. **Switching the row rebuilds the part.** With `BoltConfig` selected run
    *Switch configuration* (or click the edit button on the `Configuration`
    field) and pick `M8x40`: the bolt grows. `M8x20s` is the socket-head row - the
-   head changes shape, because the table's `HexHead` column drives which of the
-   two head features is suppressed.
+   head becomes a cylinder instead of the hexagonal prism, because the table's
+   `HexHead` column drives which of the two head features is suppressed.
 
 4. **Edit the table and every part follows.** Change `BoltTable` cell `D3`
    (the `ShankLength` of `M6x20`) from `20 mm` to `40 mm`: `Bolt` is rebuilt as
