@@ -1,7 +1,17 @@
 # SpreadSheetPlus
 
-A FreeCAD spreadsheet workbench (Python addon) similar to FreeCAD's default
-Spreadsheet workbench. It reuses FreeCAD's built-in `Spreadsheet::Sheet`
+## One spreadsheet, many parts — without duplicating the sheet.
+
+SpreadSheetPlus is a FreeCAD workbench for building parts that share a single configuration table. Change a value once, and every part that reads that row follows. Variants keep their own row without copying the master sheet.
+
+## The problem it solves:
+
+FreeCAD's App::Link copy-on-change is the native way to make variants of a part. It works well for geometry, but not for spreadsheets: when it deep-copies a linked part it also copies the spreadsheet the part's expressions point at
+(or breaks the expression link, depending on configuration). The result is a variant that either reads a stale copy of the table or stops following the master entirely.
+
+## How it integrates:
+
+A FreeCAD spreadsheet workbench (Python addon) similar to FreeCAD's default Spreadsheet workbench. It reuses FreeCAD's built-in `Spreadsheet::Sheet`
 objects through a thin wrapper and adds its own toolbar/menu commands.
 
 ## Requirements
