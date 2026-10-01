@@ -1,6 +1,7 @@
 # SpreadSheetPlus
 
-This is Pre Release - It may have bugs and it may be subject to change - However I am looking for feedback to make improvements. If you are willing to help. Please do I appreciate it. If not Thats fine too. 
+#### This is Pre Release  
+It may have bugs and it may be subject to change - However I am looking for feedback to make improvements. If you are willing to help. Please do I appreciate it. If not thats fine too. 
 
 ## One spreadsheet, many parts — without duplicating the sheet.
 
