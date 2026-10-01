@@ -1,5 +1,7 @@
 # SpreadSheetPlus
 
+This is Pre Release - It may have bugs and it may be subject to change - However I am looking for feedback to make improvements. If you are willing to help. Please do I appreciate it. If not Thats fine too. 
+
 ## One spreadsheet, many parts — without duplicating the sheet.
 
 SpreadSheetPlus is a FreeCAD workbench for building parts that share a single configuration table. Change a value once, and every part that reads that row follows. Variants keep their own row without copying the master sheet.
